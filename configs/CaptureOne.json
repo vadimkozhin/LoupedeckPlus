@@ -1,0 +1,1365 @@
+{
+  "targetBundleIdentifier": "com.captureone.captureone16",
+  "hotkeys": true,
+  "apple_script": true,
+  "lightroom_socket": false,
+  "customModeButton": {
+    "press": {
+      "midiMatch": "90 75 40",
+      "action": "custom_mode_press"
+    },
+    "release": {
+      "midiMatch": "80 75 40",
+      "action": "custom_mode_release"
+    }
+  },
+  "knobs": [
+    {
+      "comment": "Exposure Knob",
+      "default": 0,
+      "press": {
+        "midiMatch": "80 21 40",
+        "action": "reset_exposure"
+      },
+      "release": {
+        "midiMatch": "80 21 40"
+      },
+      "plus": {
+        "midiMatch": "B0 21 01",
+        "keyCode": 69,
+        "modifiers": [
+          "option"
+        ]
+      },
+      "minus": {
+        "midiMatch": "B0 21 7F",
+        "keyCode": 27,
+        "modifiers": [
+          "option"
+        ]
+      }
+    },
+    {
+      "comment": "D1 knob",
+      "default": 0,
+      "press": {
+        "midiMatch": "80 29 40"
+      },
+      "release": {
+        "midiMatch": "80 29 40"
+      },
+      "plus": {
+        "midiMatch": "B0 29 01"
+      },
+      "minus": {
+        "midiMatch": "B0 29 7F"
+      }
+    },
+    {
+      "comment": "Contrast Knob",
+      "default": 0,
+      "press": {
+        "midiMatch": "80 2E 40",
+        "action": "reset_contrast"
+      },
+      "release": {
+        "midiMatch": "80 2E 40"
+      },
+      "plus": {
+        "midiMatch": "B0 2E 01",
+        "keyCode": 15,
+        "modifiers": [
+          "command",
+          "shift"
+        ]
+      },
+      "minus": {
+        "midiMatch": "B0 2E 7F",
+        "keyCode": 15,
+        "modifiers": [
+          "shift",
+          "option"
+        ]
+      }
+    },
+    {
+      "comment": "Clarity Knob",
+      "default": 0,
+      "press": {
+        "midiMatch": "80 2D 40",
+        "action": "reset_clarity"
+      },
+      "release": {
+        "midiMatch": "80 2D 40"
+      },
+      "plus": {
+        "midiMatch": "B0 2D 01",
+        "keyCode": 37,
+        "modifiers": [
+          "command",
+          "shift"
+        ]
+      },
+      "minus": {
+        "midiMatch": "B0 2D 7F",
+        "keyCode": 37,
+        "modifiers": [
+          "shift",
+          "option"
+        ]
+      }
+    },
+    {
+      "comment": "Shadows Knob",
+      "default": 0,
+      "press": {
+        "midiMatch": "80 2C 40",
+        "action": "reset_shadows"
+      },
+      "release": {
+        "midiMatch": "80 2C 40"
+      },
+      "plus": {
+        "midiMatch": "B0 2C 01",
+        "keyCode": 1,
+        "modifiers": [
+          "command",
+          "shift"
+        ]
+      },
+      "minus": {
+        "midiMatch": "B0 2C 7F",
+        "keyCode": 1,
+        "modifiers": [
+          "shift",
+          "option"
+        ]
+      }
+    },
+    {
+      "comment": "Highlights Knob",
+      "default": 0,
+      "press": {
+        "midiMatch": "80 28 40",
+        "action": "reset_highlights"
+      },
+      "release": {
+        "midiMatch": "80 28 40"
+      },
+      "plus": {
+        "midiMatch": "B0 28 01",
+        "keyCode": 4,
+        "modifiers": [
+          "command",
+          "shift"
+        ]
+      },
+      "minus": {
+        "midiMatch": "B0 28 7F",
+        "keyCode": 4,
+        "modifiers": [
+          "shift",
+          "option"
+        ]
+      }
+    },
+    {
+      "comment": "Blacks Knob",
+      "default": 0,
+      "press": {
+        "midiMatch": "80 22 40",
+        "action": "reset_blacks"
+      },
+      "release": {
+        "midiMatch": "80 22 40"
+      },
+      "plus": {
+        "midiMatch": "B0 22 01",
+        "keyCode": 2,
+        "modifiers": [
+          "option"
+        ]
+      },
+      "minus": {
+        "midiMatch": "B0 22 7F",
+        "keyCode": 40,
+        "modifiers": [
+          "command",
+          "shift",
+          "option"
+        ]
+      }
+    },
+    {
+      "comment": "Whites Knob",
+      "default": 0,
+      "press": {
+        "midiMatch": "80 23 40",
+        "action": "reset_whites"
+      },
+      "release": {
+        "midiMatch": "80 23 40"
+      },
+      "plus": {
+        "midiMatch": "B0 23 01",
+        "keyCode": 13,
+        "modifiers": [
+          "option"
+        ]
+      },
+      "minus": {
+        "midiMatch": "B0 23 7F",
+        "keyCode": 13,
+        "modifiers": [
+          "command",
+          "option"
+        ]
+      }
+    },
+    {
+      "comment": "Saturation Knob",
+      "default": 0,
+      "press": {
+        "midiMatch": "80 24 40",
+        "action": "reset_saturation"
+      },
+      "release": {
+        "midiMatch": "80 24 40"
+      },
+      "plus": {
+        "midiMatch": "B0 24 01",
+        "keyCode": 69,
+        "modifiers": [
+          "command",
+          "option"
+        ]
+      },
+      "minus": {
+        "midiMatch": "B0 24 7F",
+        "keyCode": 27,
+        "modifiers": [
+          "command",
+          "option"
+        ]
+      }
+    },
+    {
+      "comment": "D2 knob",
+      "default": 0,
+      "press": {
+        "midiMatch": "80 2A 40",
+        "action": "reset_vignetting"
+      },
+      "release": {
+        "midiMatch": "80 2A 40"
+      },
+      "plus": {
+        "midiMatch": "B0 2A 01",
+        "keyCode": 5,
+        "modifiers": [
+          "command",
+          "shift"
+        ]
+      },
+      "minus": {
+        "midiMatch": "B0 2A 7F",
+        "keyCode": 5,
+        "modifiers": [
+          "shift",
+          "option"
+        ]
+      }
+    },
+    {
+      "comment": "Control Dial",
+      "press": {
+        "midiMatch": "90 30 40"
+      },
+      "release": {
+        "midiMatch": "80 30 40"
+      },
+      "plus": {
+        "midiMatch": "B0 30 01",
+        "keyCode": 124
+      },
+      "minus": {
+        "midiMatch": "B0 30 7F",
+        "keyCode": 123
+      }
+    },
+    {
+      "comment": "Temperature Knob",
+      "default": 5000,
+      "press": {
+        "midiMatch": "90 26 40",
+        "action": "reset_temperature"
+      },
+      "release": {
+        "midiMatch": "80 26 40"
+      },
+      "plus": {
+        "midiMatch": "B0 26 01",
+        "keyCode": 69,
+        "modifiers": [
+          "shift"
+        ]
+      },
+      "minus": {
+        "midiMatch": "B0 26 7F",
+        "keyCode": 27,
+        "modifiers": [
+          "shift"
+        ]
+      }
+    },
+    {
+      "comment": "Tint Knob",
+      "default": 0,
+      "press": {
+        "midiMatch": "90 27 40",
+        "action": "reset_tint"
+      },
+      "release": {
+        "midiMatch": "80 27 40"
+      },
+      "plus": {
+        "midiMatch": "B0 27 01",
+        "keyCode": 69,
+        "modifiers": [
+          "shift",
+          "option"
+        ]
+      },
+      "minus": {
+        "midiMatch": "B0 27 7F",
+        "keyCode": 27,
+        "modifiers": [
+          "shift",
+          "option"
+        ]
+      }
+    },
+    {
+      "comment": "Red Wheel - Hue",
+      "default": 0,
+      "press": {
+        "midiMatch": "80 01 40",
+        "action": "reset_red_hue"
+      },
+      "release": {
+        "midiMatch": "80 01 40"
+      },
+      "plus": {
+        "midiMatch": "B0 01 01",
+        "action": "adjust_red_hue_up"
+      },
+      "minus": {
+        "midiMatch": "B0 01 7F",
+        "action": "adjust_red_hue_down"
+      }
+    },
+    {
+      "comment": "Orange Wheel - Hue",
+      "default": 0,
+      "press": {
+        "midiMatch": "80 02 40",
+        "action": "reset_orange_hue"
+      },
+      "release": {
+        "midiMatch": "80 02 40"
+      },
+      "plus": {
+        "midiMatch": "B0 02 01",
+        "action": "adjust_orange_hue_up"
+      },
+      "minus": {
+        "midiMatch": "B0 02 7F",
+        "action": "adjust_orange_hue_down"
+      }
+    },
+    {
+      "comment": "Yellow Wheel - Hue",
+      "default": 0,
+      "press": {
+        "midiMatch": "80 03 40",
+        "action": "reset_yellow_hue"
+      },
+      "release": {
+        "midiMatch": "80 03 40"
+      },
+      "plus": {
+        "midiMatch": "B0 03 01",
+        "action": "adjust_yellow_hue_up"
+      },
+      "minus": {
+        "midiMatch": "B0 03 7F",
+        "action": "adjust_yellow_hue_down"
+      }
+    },
+    {
+      "comment": "Green Wheel - Hue",
+      "default": 0,
+      "press": {
+        "midiMatch": "80 04 40",
+        "action": "reset_green_hue"
+      },
+      "release": {
+        "midiMatch": "80 04 40"
+      },
+      "plus": {
+        "midiMatch": "B0 04 01",
+        "action": "adjust_green_hue_up"
+      },
+      "minus": {
+        "midiMatch": "B0 04 7F",
+        "action": "adjust_green_hue_down"
+      }
+    },
+    {
+      "comment": "Cyan Wheel - Hue",
+      "default": 0,
+      "press": {
+        "midiMatch": "80 05 40",
+        "action": "reset_cyan_hue"
+      },
+      "release": {
+        "midiMatch": "80 05 40"
+      },
+      "plus": {
+        "midiMatch": "B0 05 01",
+        "action": "adjust_cyan_hue_up"
+      },
+      "minus": {
+        "midiMatch": "B0 05 7F",
+        "action": "adjust_cyan_hue_down"
+      }
+    },
+    {
+      "comment": "Blue Wheel - Hue",
+      "default": 0,
+      "press": {
+        "midiMatch": "80 06 40",
+        "action": "reset_blue_hue"
+      },
+      "release": {
+        "midiMatch": "80 06 40"
+      },
+      "plus": {
+        "midiMatch": "B0 06 01",
+        "action": "adjust_blue_hue_up"
+      },
+      "minus": {
+        "midiMatch": "B0 06 7F",
+        "action": "adjust_blue_hue_down"
+      }
+    },
+    {
+      "comment": "Violet Wheel - Hue",
+      "default": 0,
+      "press": {
+        "midiMatch": "80 07 40",
+        "action": "reset_violet_hue"
+      },
+      "release": {
+        "midiMatch": "80 07 40"
+      },
+      "plus": {
+        "midiMatch": "B0 07 01",
+        "action": "adjust_violet_hue_up"
+      },
+      "minus": {
+        "midiMatch": "B0 07 7F",
+        "action": "adjust_violet_hue_down"
+      }
+    },
+    {
+      "comment": "Magenta Wheel - Hue",
+      "default": 0,
+      "press": {
+        "midiMatch": "80 08 40",
+        "action": "reset_magenta_hue"
+      },
+      "release": {
+        "midiMatch": "80 08 40"
+      },
+      "plus": {
+        "midiMatch": "B0 08 01",
+        "action": "adjust_magenta_hue_up"
+      },
+      "minus": {
+        "midiMatch": "B0 08 7F",
+        "action": "adjust_magenta_hue_down"
+      }
+    },
+    {
+      "comment": "Red Wheel - Sat",
+      "default": 0,
+      "press": {
+        "midiMatch": "80 09 40",
+        "action": "reset_red_sat"
+      },
+      "release": {
+        "midiMatch": "80 09 40"
+      },
+      "plus": {
+        "midiMatch": "B0 09 01",
+        "action": "adjust_red_saturation_up"
+      },
+      "minus": {
+        "midiMatch": "B0 09 7F",
+        "action": "adjust_red_saturation_down"
+      }
+    },
+    {
+      "comment": "Orange Wheel - Sat",
+      "default": 0,
+      "press": {
+        "midiMatch": "80 0a 40",
+        "action": "reset_orange_sat"
+      },
+      "release": {
+        "midiMatch": "80 0a 40"
+      },
+      "plus": {
+        "midiMatch": "B0 0A 01",
+        "action": "adjust_orange_saturation_up"
+      },
+      "minus": {
+        "midiMatch": "B0 0A 7F",
+        "action": "adjust_orange_saturation_down"
+      }
+    },
+    {
+      "comment": "Yellow Wheel - Sat",
+      "default": 0,
+      "press": {
+        "midiMatch": "80 0b 40",
+        "action": "reset_yellow_sat"
+      },
+      "release": {
+        "midiMatch": "80 0b 40"
+      },
+      "plus": {
+        "midiMatch": "B0 0B 01",
+        "action": "adjust_yellow_saturation_up"
+      },
+      "minus": {
+        "midiMatch": "B0 0B 7F",
+        "action": "adjust_yellow_saturation_down"
+      }
+    },
+    {
+      "comment": "Green Wheel - Sat",
+      "default": 0,
+      "press": {
+        "midiMatch": "80 0c 40",
+        "action": "reset_green_sat"
+      },
+      "release": {
+        "midiMatch": "80 0c 40"
+      },
+      "plus": {
+        "midiMatch": "B0 0C 01",
+        "action": "adjust_green_saturation_up"
+      },
+      "minus": {
+        "midiMatch": "B0 0C 7F",
+        "action": "adjust_green_saturation_down"
+      }
+    },
+    {
+      "comment": "Cyan Wheel - Sat",
+      "default": 0,
+      "press": {
+        "midiMatch": "80 0d 40",
+        "action": "reset_cyan_sat"
+      },
+      "release": {
+        "midiMatch": "80 0d 40"
+      },
+      "plus": {
+        "midiMatch": "B0 0D 01",
+        "action": "adjust_cyan_saturation_up"
+      },
+      "minus": {
+        "midiMatch": "B0 0D 7F",
+        "action": "adjust_cyan_saturation_down"
+      }
+    },
+    {
+      "comment": "Blue Wheel - Sat",
+      "default": 0,
+      "plus": {
+        "midiMatch": "B0 0E 01",
+        "action": "adjust_blue_saturation_up"
+      },
+      "minus": {
+        "midiMatch": "B0 0E 7F",
+        "action": "adjust_blue_saturation_down"
+      },
+      "press": {
+        "midiMatch": "80 0e 40",
+        "action": "reset_blue_sat"
+      }
+    },
+    {
+      "comment": "Violet Wheel - Sat",
+      "default": 0,
+      "plus": {
+        "midiMatch": "B0 0F 01",
+        "action": "adjust_violet_saturation_up"
+      },
+      "minus": {
+        "midiMatch": "B0 0F 7F",
+        "action": "adjust_violet_saturation_down"
+      },
+      "press": {
+        "midiMatch": "80 0f 40",
+        "action": "reset_violet_sat"
+      }
+    },
+    {
+      "comment": "Magenta Wheel - Sat",
+      "default": 0,
+      "plus": {
+        "midiMatch": "B0 10 01",
+        "action": "adjust_magenta_saturation_up"
+      },
+      "minus": {
+        "midiMatch": "B0 10 7F",
+        "action": "adjust_magenta_saturation_down"
+      },
+      "press": {
+        "midiMatch": "80 10 40",
+        "action": "reset_magenta_sat"
+      }
+    },
+    {
+      "comment": "Red Wheel - Lum",
+      "default": 0,
+      "press": {
+        "midiMatch": "80 11 40",
+        "action": "reset_red_lum"
+      },
+      "release": {
+        "midiMatch": "80 11 40"
+      },
+      "plus": {
+        "midiMatch": "B0 11 01",
+        "action": "adjust_red_lightness_up"
+      },
+      "minus": {
+        "midiMatch": "B0 11 7F",
+        "action": "adjust_red_lightness_down"
+      }
+    },
+    {
+      "comment": "Orange Wheel - Lum",
+      "default": 0,
+      "press": {
+        "midiMatch": "80 12 40",
+        "action": "reset_orange_lum"
+      },
+      "release": {
+        "midiMatch": "80 12 40"
+      },
+      "plus": {
+        "midiMatch": "B0 12 01",
+        "action": "adjust_orange_lightness_up"
+      },
+      "minus": {
+        "midiMatch": "B0 12 7F",
+        "action": "adjust_orange_lightness_down"
+      }
+    },
+    {
+      "comment": "Yellow Wheel - Lum",
+      "default": 0,
+      "press": {
+        "midiMatch": "80 13 40",
+        "action": "reset_yellow_lum"
+      },
+      "release": {
+        "midiMatch": "80 13 40"
+      },
+      "plus": {
+        "midiMatch": "B0 13 01",
+        "action": "adjust_yellow_lightness_up"
+      },
+      "minus": {
+        "midiMatch": "B0 13 7F",
+        "action": "adjust_yellow_lightness_down"
+      }
+    },
+    {
+      "comment": "Green Wheel - Lum",
+      "default": 0,
+      "press": {
+        "midiMatch": "80 14 40",
+        "action": "reset_green_lum"
+      },
+      "release": {
+        "midiMatch": "80 14 40"
+      },
+      "plus": {
+        "midiMatch": "B0 14 01",
+        "action": "adjust_green_lightness_up"
+      },
+      "minus": {
+        "midiMatch": "B0 14 7F",
+        "action": "adjust_green_lightness_down"
+      }
+    },
+    {
+      "comment": "Cyan Wheel - Lum",
+      "default": 0,
+      "press": {
+        "midiMatch": "80 15 40",
+        "action": "reset_cyan_lum"
+      },
+      "release": {
+        "midiMatch": "80 15 40"
+      },
+      "plus": {
+        "midiMatch": "B0 15 01",
+        "action": "adjust_cyan_lightness_up"
+      },
+      "minus": {
+        "midiMatch": "B0 15 7F",
+        "action": "adjust_cyan_lightness_down"
+      }
+    },
+    {
+      "comment": "Blue Wheel - Lum",
+      "default": 0,
+      "press": {
+        "midiMatch": "80 16 40",
+        "action": "reset_blue_lum"
+      },
+      "release": {
+        "midiMatch": "80 16 40"
+      },
+      "plus": {
+        "midiMatch": "B0 16 01",
+        "action": "adjust_blue_lightness_up"
+      },
+      "minus": {
+        "midiMatch": "B0 16 7F",
+        "action": "adjust_blue_lightness_down"
+      }
+    },
+    {
+      "comment": "Violet Wheel - Lum",
+      "default": 0,
+      "press": {
+        "midiMatch": "80 17 40",
+        "action": "reset_violet_lum"
+      },
+      "release": {
+        "midiMatch": "80 17 40"
+      },
+      "plus": {
+        "midiMatch": "B0 17 01",
+        "action": "adjust_violet_lightness_up"
+      },
+      "minus": {
+        "midiMatch": "B0 17 7F",
+        "action": "adjust_violet_lightness_down"
+      }
+    },
+    {
+      "comment": "Magenta Wheel - Lum",
+      "default": 0,
+      "press": {
+        "midiMatch": "80 18 40",
+        "action": "reset_magenta_lum"
+      },
+      "release": {
+        "midiMatch": "80 18 40"
+      },
+      "plus": {
+        "midiMatch": "B0 18 01",
+        "action": "adjust_magenta_lightness_up"
+      },
+      "minus": {
+        "midiMatch": "B0 18 7F",
+        "action": "adjust_magenta_lightness_down"
+      }
+    },
+    {
+      "comment": "Vibrance Knob",
+      "press": {
+        "midiMatch": "80 25 40"
+      },
+      "release": {
+        "midiMatch": "80 25 40"
+      },
+      "plus": {
+        "midiMatch": "B0 25 01"
+      },
+      "minus": {
+        "midiMatch": "B0 25 7F"
+      }
+    }
+  ],
+  "buttons": [
+    {
+      "comment": "Undo",
+      "press": {
+        "midiMatch": "90 5F 40",
+        "keyCode": 6,
+        "modifiers": [
+          "command"
+        ]
+      },
+      "release": {
+        "midiMatch": "80 5F 40"
+      }
+    },
+    {
+      "comment": "Redo",
+      "press": {
+        "midiMatch": "90 60 40",
+        "keyCode": 6,
+        "modifiers": [
+          "command",
+          "shift"
+        ]
+      },
+      "release": {
+        "midiMatch": "80 60 40"
+      }
+    },
+    {
+      "comment": "L1",
+      "press": {
+        "midiMatch": "90 72 40",
+        "keyCode": 37,
+        "modifiers": [
+          "shift",
+          "control"
+        ]
+      },
+      "release": {
+        "midiMatch": "80 72 40"
+      }
+    },
+    {
+      "comment": "L2",
+      "press": {
+        "midiMatch": "90 73 40",
+        "keyCode": 8,
+        "modifiers": [
+          "control"
+        ]
+      },
+      "release": {
+        "midiMatch": "80 73 40"
+      }
+    },
+    {
+      "comment": "L3",
+      "press": {
+        "midiMatch": "90 74 40",
+        "keyCode": 4,
+        "modifiers": [
+          "shift",
+          "control"
+        ]
+      },
+      "release": {
+        "midiMatch": "80 74 40"
+      }
+    },
+    {
+      "comment": "ColorTag --/col (Clear)",
+      "press": {
+        "midiMatch": "90 41 40",
+        "keyCode": 29
+      },
+      "release": {
+        "midiMatch": "80 41 40"
+      },
+      "cm_press": {
+        "midiMatch": "90 41 40",
+        "keyCode": 29,
+        "modifiers": [
+          "shift"
+        ]
+      }
+    },
+    {
+      "comment": "ColorTag red",
+      "press": {
+        "midiMatch": "90 42 40",
+        "keyCode": 18
+      },
+      "release": {
+        "midiMatch": "80 42 40"
+      },
+      "cm_press": {
+        "midiMatch": "90 42 40",
+        "keyCode": 18,
+        "modifiers": [
+          "shift"
+        ]
+      },
+      "fn_press": {
+        "midiMatch": "90 42 40",
+        "keyCode": 18,
+        "modifiers": [
+          "shift",
+          "option"
+        ]
+      },
+      "cm_fn_press": {
+        "midiMatch": "90 42 40",
+        "keyCode": 18,
+        "modifiers": [
+          "command",
+          "option"
+        ]
+      }
+    },
+    {
+      "comment": "ColorTag yellow",
+      "press": {
+        "midiMatch": "90 43 40",
+        "keyCode": 19
+      },
+      "release": {
+        "midiMatch": "80 43 40"
+      },
+      "cm_press": {
+        "midiMatch": "90 43 40",
+        "keyCode": 19,
+        "modifiers": [
+          "shift"
+        ]
+      },
+      "fn_press": {
+        "midiMatch": "90 43 40",
+        "keyCode": 19,
+        "modifiers": [
+          "shift",
+          "option"
+        ]
+      },
+      "cm_fn_press": {
+        "midiMatch": "90 43 40",
+        "keyCode": 19,
+        "modifiers": [
+          "command",
+          "option"
+        ]
+      }
+    },
+    {
+      "comment": "ColorTag green",
+      "press": {
+        "midiMatch": "90 44 40",
+        "keyCode": 20
+      },
+      "release": {
+        "midiMatch": "80 44 40"
+      },
+      "cm_press": {
+        "midiMatch": "90 44 40",
+        "keyCode": 20,
+        "modifiers": [
+          "shift"
+        ]
+      },
+      "fn_press": {
+        "midiMatch": "90 44 40",
+        "keyCode": 20,
+        "modifiers": [
+          "shift",
+          "option"
+        ]
+      },
+      "cm_fn_press": {
+        "midiMatch": "90 44 40",
+        "keyCode": 20,
+        "modifiers": [
+          "command",
+          "option"
+        ]
+      }
+    },
+    {
+      "comment": "ColorTag blue",
+      "press": {
+        "midiMatch": "90 45 40",
+        "keyCode": 21
+      },
+      "release": {
+        "midiMatch": "80 45 40"
+      },
+      "cm_press": {
+        "midiMatch": "90 45 40",
+        "keyCode": 21,
+        "modifiers": [
+          "shift"
+        ]
+      },
+      "fn_press": {
+        "midiMatch": "90 45 40",
+        "keyCode": 21,
+        "modifiers": [
+          "shift",
+          "option"
+        ]
+      },
+      "cm_fn_press": {
+        "midiMatch": "90 45 40",
+        "keyCode": 21,
+        "modifiers": [
+          "command",
+          "option"
+        ]
+      }
+    },
+    {
+      "comment": "ColorTag violet",
+      "press": {
+        "midiMatch": "90 46 40",
+        "keyCode": 23
+      },
+      "release": {
+        "midiMatch": "80 46 40"
+      },
+      "cm_press": {
+        "midiMatch": "90 46 40",
+        "keyCode": 26,
+        "modifiers": [
+          "shift"
+        ]
+      },
+      "fn_press": {
+        "midiMatch": "90 46 40",
+        "keyCode": 23,
+        "modifiers": [
+          "shift",
+          "option"
+        ]
+      },
+      "cm_fn_press": {
+        "midiMatch": "90 46 40",
+        "keyCode": 23,
+        "modifiers": [
+          "command",
+          "option"
+        ]
+      }
+    },
+    {
+      "comment": "Copy Adjustments",
+      "press": {
+        "midiMatch": "90 5C 40",
+        "keyCode": 8,
+        "modifiers": [
+          "command",
+          "shift"
+        ]
+      },
+      "release": {
+        "midiMatch": "80 5C 40"
+      },
+      "fn_press": {
+        "midiMatch": "90 5C 40",
+        "keyCode": 9,
+        "modifiers": [
+          "shift",
+          "control"
+        ]
+      }
+    },
+    {
+      "comment": "Paste Adjustments",
+      "press": {
+        "midiMatch": "90 5D 40",
+        "keyCode": 9,
+        "modifiers": [
+          "command",
+          "shift"
+        ]
+      },
+      "release": {
+        "midiMatch": "80 5D 40"
+      }
+    },
+    {
+      "comment": "Fn Button",
+      "press": {
+        "midiMatch": "90 6E 40",
+        "action": "fn_press"
+      },
+      "release": {
+        "midiMatch": "80 6E 40",
+        "action": "fn_release"
+      }
+    },
+    {
+      "comment": "C1",
+      "press": {
+        "midiMatch": "90 31 40",
+        "keyCode": 46,
+        "modifiers": [
+          "option"
+        ]
+      },
+      "release": {
+        "midiMatch": "80 31 40"
+      }
+    },
+    {
+      "comment": "C2",
+      "press": {
+        "midiMatch": "90 32 40",
+        "keyCode": 7
+      },
+      "release": {
+        "midiMatch": "80 32 40"
+      }
+    },
+    {
+      "comment": "C3",
+      "press": {
+        "midiMatch": "90 33 40",
+        "keyCode": 35
+      },
+      "release": {
+        "midiMatch": "80 33 40"
+      }
+    },
+    {
+      "comment": "C4",
+      "press": {
+        "midiMatch": "90 34 40",
+        "keyCode": 8
+      },
+      "release": {
+        "midiMatch": "80 34 40"
+      }
+    },
+    {
+      "comment": "C5",
+      "press": {
+        "midiMatch": "90 35 40",
+        "keyCode": 4
+      },
+      "release": {
+        "midiMatch": "80 35 40"
+      }
+    },
+    {
+      "comment": "C6",
+      "press": {
+        "midiMatch": "90 36 40",
+        "keyCode": 9
+      },
+      "release": {
+        "midiMatch": "80 36 40"
+      }
+    },
+    {
+      "comment": "Clr/BW",
+      "press": {
+        "midiMatch": "90 65 40",
+        "action": "toggle_black_and_white"
+      },
+      "release": {
+        "midiMatch": "80 65 40"
+      }
+    },
+    {
+      "comment": "Hue Mode Button",
+      "press": {
+        "midiMatch": "90 62 40",
+        "action": "hue_mode_press"
+      },
+      "release": {
+        "midiMatch": "80 62 40",
+        "action": "hue_mode_release"
+      }
+    },
+    {
+      "comment": "Sat Mode Button",
+      "press": {
+        "midiMatch": "90 63 40",
+        "action": "sat_mode_press"
+      },
+      "release": {
+        "midiMatch": "80 63 40",
+        "action": "sat_mode_release"
+      }
+    },
+    {
+      "comment": "Lum Mode Button",
+      "press": {
+        "midiMatch": "90 64 40",
+        "action": "lum_mode_press"
+      },
+      "release": {
+        "midiMatch": "80 64 40",
+        "action": "lum_mode_release"
+      }
+    },
+    {
+      "comment": "P1",
+      "press": {
+        "midiMatch": "90 50 40",
+        "action": "EXPO -0,5"
+      },
+      "release": {
+        "midiMatch": "80 50 40"
+      }
+    },
+    {
+      "comment": "P2",
+      "press": {
+        "midiMatch": "90 51 40",
+        "action": "EXPO +0,5"
+      },
+      "release": {
+        "midiMatch": "80 51 40"
+      }
+    },
+    {
+      "comment": "P3",
+      "press": {
+        "midiMatch": "90 52 40"
+      },
+      "release": {
+        "midiMatch": "80 52 40"
+      }
+    },
+    {
+      "comment": "P4",
+      "press": {
+        "midiMatch": "90 53 40"
+      },
+      "release": {
+        "midiMatch": "80 53 40"
+      }
+    },
+    {
+      "comment": "P5",
+      "press": {
+        "midiMatch": "90 54 40"
+      },
+      "release": {
+        "midiMatch": "80 54 40"
+      }
+    },
+    {
+      "comment": "P6",
+      "press": {
+        "midiMatch": "90 55 40"
+      },
+      "release": {
+        "midiMatch": "80 55 40"
+      }
+    },
+    {
+      "comment": "P7",
+      "press": {
+        "midiMatch": "90 56 40"
+      },
+      "release": {
+        "midiMatch": "80 56 40"
+      }
+    },
+    {
+      "comment": "P8",
+      "press": {
+        "midiMatch": "90 57 40"
+      },
+      "release": {
+        "midiMatch": "80 57 40"
+      }
+    },
+    {
+      "comment": "Up Arrow",
+      "press": {
+        "midiMatch": "90 4C 40",
+        "keyCode": 126
+      },
+      "release": {
+        "midiMatch": "80 4C 40"
+      }
+    },
+    {
+      "comment": "Down Arrow",
+      "press": {
+        "midiMatch": "90 4D 40",
+        "keyCode": 125
+      },
+      "release": {
+        "midiMatch": "80 4D 40"
+      }
+    },
+    {
+      "comment": "Left Arrow",
+      "press": {
+        "midiMatch": "90 4E 40",
+        "keyCode": 123
+      },
+      "release": {
+        "midiMatch": "80 4E 40"
+      }
+    },
+    {
+      "comment": "Right Arrow",
+      "press": {
+        "midiMatch": "90 4F 40",
+        "keyCode": 124
+      },
+      "release": {
+        "midiMatch": "80 4F 40"
+      }
+    },
+    {
+      "comment": "Before/After Toggle",
+      "press": {
+        "midiMatch": "90 66 40",
+        "keyCode": 11,
+        "modifiers": [
+          "shift",
+          "control"
+        ]
+      },
+      "release": {
+        "midiMatch": "80 66 40"
+      }
+    },
+    {
+      "comment": "Screen Mode (Full Screen)",
+      "press": {
+        "midiMatch": "90 61 40",
+        "keyCode": 3,
+        "modifiers": [
+          "option"
+        ]
+      },
+      "release": {
+        "midiMatch": "80 61 40"
+      }
+    },
+    {
+      "comment": "Export Dialog",
+      "press": {
+        "midiMatch": "90 58 40",
+        "keyCode": 14,
+        "modifiers": [
+          "shift",
+          "option"
+        ]
+      },
+      "release": {
+        "midiMatch": "80 58 40"
+      }
+    }
+  ]
+}

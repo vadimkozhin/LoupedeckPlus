@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Loupedeck Configuration</title>
+  <!-- Google Fonts: Outfit (headers) and Inter (body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <div class="app-container">
+    <!-- Left Column: SVG Keyboard visualizer -->
+    <div class="visualizer-pane">
+      <div class="visualizer-header">
+        <div class="header-left">
+          <h1>LoupedeckPlus <span id="app-version" class="version-tag"></span></h1>
+          <p class="subtitle">Click any button, dial, or wheel to customize its behavior</p>
+        </div>
+        <div class="header-right">
+          <div class="profile-selection-header">
+            <div class="flex-row">
+              <select id="profile-select">
+                <option value="" disabled selected>Loading profiles...</option>
+              </select>
+              <button id="btn-manage-profiles" class="btn btn-secondary" title="Manage Profiles">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="3"></circle>
+                  <path
+                    d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                  </path>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="svg-wrapper" id="svg-container">
+        <!-- SVG content will be injected here dynamically -->
+        <div class="loading-spinner">
+          <div class="spinner"></div>
+          <p>Loading device visualizer...</p>
+        </div>
+      </div>
+
+      <!-- Device Status Bar -->
+      <div id="device-status-bar" class="status-bar">
+        <div class="status-indicator">
+          <span class="status-dot disconnected" id="status-dot"></span>
+          <span class="status-text" id="status-text">Keyboard Disconnected</span>
+        </div>
+        <div class="serial-number-wrapper" id="serial-display-wrapper" style="display: none;">
+          Serial: <span id="serial-number">-</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Settings Panel -->
+    <div class="settings-pane" id="settings-pane">
+      <!-- View 1: Profile Settings Editor (Hidden by default) -->
+      <div class="pane-section profile-settings hidden" id="profile-settings-editor">
+        <h2>Profile Management</h2>
+
+        <div class="form-group">
+          <label>Profiles</label>
+          <div class="flex-row">
+            <button id="btn-new-profile" class="btn btn-secondary btn-full">Create New Profile</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="target-bundle-id">Target Bundle Identifier</label>
+          <div class="flex-row">
+            <input type="text" id="target-bundle-id" placeholder="e.g. com.captureone.captureone16">
+            <button id="btn-browse-app" class="btn btn-secondary">Browse</button>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top: 10px;">
+          <label>Expose Control Options</label>
+          <div class="checkbox-group" style="margin-top: 6px;">
+            <input type="checkbox" id="chk-opt-hotkeys">
+            <label for="chk-opt-hotkeys" class="checkbox-label">Virtual Keystroke (Hotkey)</label>
+          </div>
+          <div class="checkbox-group" style="margin-top: 6px;">
+            <input type="checkbox" id="chk-opt-applescript">
+            <label for="chk-opt-applescript" class="checkbox-label">Apple Script</label>
+          </div>
+          <div class="checkbox-group" style="margin-top: 6px;">
+            <input type="checkbox" id="chk-opt-socket">
+            <label for="chk-opt-socket" class="checkbox-label">Socket Command (Lightroom)</label>
+          </div>
+        </div>
+
+        <div id="global-override-container" style="margin-top: 10px;">
+          <div class="checkbox-group" id="chk-global-override-wrapper">
+            <input type="checkbox" id="chk-global-override">
+            <label for="chk-global-override" class="checkbox-label">
+              Apply profile globally (Override target application logic)
+            </label>
+          </div>
+          <div id="override-by-other-profile" class="hidden"
+            style="color: var(--accent-color); font-weight: 500; font-size: 13px; padding: 8px 12px; background: rgba(235, 94, 40, 0.08); border: 1px dashed var(--accent-color); border-radius: 6px;">
+            Overridden by <span id="overriding-profile-name" style="font-weight: 700;"></span>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top: 15px; border-top: 1px solid var(--border-color); padding-top: 15px;">
+          <label>Active Profile Actions</label>
+          <div class="flex-row" style="gap: 8px; margin-top: 8px;">
+            <button id="btn-rename-profile" class="btn btn-secondary" style="flex: 1;">Rename Profile</button>
+            <button id="btn-delete-profile" class="btn btn-danger" style="flex: 1;">Delete Profile</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- View 2: Selected Control Settings (Default View) -->
+      <div class="pane-section control-settings" id="control-settings-editor">
+        <div class="section-header">
+          <h2>Control Mapping</h2>
+          <span id="selected-control-badge" class="badge">None Selected</span>
+        </div>
+
+        <div id="no-control-selected" class="empty-state">
+          <div class="empty-icon">🎛️</div>
+          <p>Click on any button or knob on the device layout to configure its actions, or click "Manage Profiles" above
+            to edit profile settings.</p>
+        </div>
+
+        <div id="control-editor" class="control-editor hidden">
+          <h3 id="selected-control-title">Exposure Knob</h3>
+          <p id="selected-control-description" class="control-meta-desc">Knob controller</p>
+
+          <div id="wheel-mode-container" class="form-group hidden"></div>
+
+          <div class="form-group">
+            <label for="control-custom-comment">Custom Comment / Display Name</label>
+            <input type="text" id="control-custom-comment" placeholder="e.g. Exposure Adjustment">
+          </div>
+
+          <div id="knob-default-group" class="form-group hidden">
+            <label for="knob-default-value">Default Value</label>
+            <input type="number" id="knob-default-value" step="0.1" value="0.0" placeholder="0.0">
+          </div>
+
+          <!-- Modifiers Tab Selector -->
+          <div class="modifier-tabs">
+            <button class="tab-btn active" data-tab="normal">Standard</button>
+            <button class="tab-btn" data-tab="fn">Fn Hold</button>
+            <button class="tab-btn" data-tab="cm">Custom Mode</button>
+            <button class="tab-btn" data-tab="cm-fn">Custom + Fn</button>
+          </div>
+
+          <!-- Tab Contents -->
+          <div class="tab-content-container">
+            <!-- Normal Tab -->
+            <div class="tab-content active" id="tab-normal">
+              <div class="action-event-group" id="group-normal-plus-minus">
+                <h4>Rotation Action</h4>
+                <div class="action-subgroup">
+                  <h5>Rotate Right / Plus (+)</h5>
+                  <div class="action-fields" id="fields-normal-plus"></div>
+                </div>
+                <div class="action-subgroup">
+                  <h5>Rotate Left / Minus (-)</h5>
+                  <div class="action-fields" id="fields-normal-minus"></div>
+                </div>
+              </div>
+
+              <div class="action-event-group" id="group-normal-press-release">
+                <h4>Click Action</h4>
+                <div class="action-subgroup">
+                  <h5>Press</h5>
+                  <div class="action-fields" id="fields-normal-press"></div>
+                </div>
+                <div class="action-subgroup">
+                  <h5>Release</h5>
+                  <div class="action-fields" id="fields-normal-release"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Fn Tab -->
+            <div class="tab-content" id="tab-fn">
+              <div class="action-event-group" id="group-fn-plus-minus">
+                <h4>Rotation Action (with Fn held)</h4>
+                <div class="action-subgroup">
+                  <h5>Rotate Right / Plus (+)</h5>
+                  <div class="action-fields" id="fields-fn-plus"></div>
+                </div>
+                <div class="action-subgroup">
+                  <h5>Rotate Left / Minus (-)</h5>
+                  <div class="action-fields" id="fields-fn-minus"></div>
+                </div>
+              </div>
+
+              <div class="action-event-group" id="group-fn-press-release">
+                <h4>Click Action (with Fn held)</h4>
+                <div class="action-subgroup">
+                  <h5>Press</h5>
+                  <div class="action-fields" id="fields-fn-press"></div>
+                </div>
+                <div class="action-subgroup">
+                  <h5>Release</h5>
+                  <div class="action-fields" id="fields-fn-release"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Custom Mode Tab -->
+            <div class="tab-content" id="tab-cm">
+              <div class="action-event-group" id="group-cm-plus-minus">
+                <h4>Rotation Action (in Custom Mode)</h4>
+                <div class="action-subgroup">
+                  <h5>Rotate Right / Plus (+)</h5>
+                  <div class="action-fields" id="fields-cm-plus"></div>
+                </div>
+                <div class="action-subgroup">
+                  <h5>Rotate Left / Minus (-)</h5>
+                  <div class="action-fields" id="fields-cm-minus"></div>
+                </div>
+              </div>
+
+              <div class="action-event-group" id="group-cm-press-release">
+                <h4>Click Action (in Custom Mode)</h4>
+                <div class="action-subgroup">
+                  <h5>Press</h5>
+                  <div class="action-fields" id="fields-cm-press"></div>
+                </div>
+                <div class="action-subgroup">
+                  <h5>Release</h5>
+                  <div class="action-fields" id="fields-cm-release"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Custom + Fn Tab -->
+            <div class="tab-content" id="tab-cm-fn">
+              <div class="action-event-group" id="group-cm-fn-plus-minus">
+                <h4>Rotation Action (Custom Mode + Fn)</h4>
+                <div class="action-subgroup">
+                  <h5>Rotate Right / Plus (+)</h5>
+                  <div class="action-fields" id="fields-cm-fn-plus"></div>
+                </div>
+                <div class="action-subgroup">
+                  <h5>Rotate Left / Minus (-)</h5>
+                  <div class="action-fields" id="fields-cm-fn-minus"></div>
+                </div>
+              </div>
+
+              <div class="action-event-group" id="group-cm-fn-press-release">
+                <h4>Click Action (Custom Mode + Fn)</h4>
+                <div class="action-subgroup">
+                  <h5>Press</h5>
+                  <div class="action-fields" id="fields-cm-fn-press"></div>
+                </div>
+                <div class="action-subgroup">
+                  <h5>Release</h5>
+                  <div class="action-fields" id="fields-cm-fn-release"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="save-actions">
+            <button id="btn-save-control" class="btn btn-secondary btn-full">Save Mapping Settings</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal for New Profile -->
+  <div id="new-profile-modal" class="modal hidden">
+    <div class="modal-content">
+      <h3>Create New Profile</h3>
+      <p>This will clone your default profile to get started quickly.</p>
+      <div class="form-group">
+        <label for="new-profile-name">Profile Name</label>
+        <input type="text" id="new-profile-name" placeholder="e.g. Photoshop">
+      </div>
+      <div class="modal-footer">
+        <button id="btn-modal-cancel" class="btn btn-secondary">Cancel</button>
+        <button id="btn-modal-create" class="btn btn-primary">Create</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal for Rename Profile -->
+  <div id="rename-profile-modal" class="modal hidden">
+    <div class="modal-content">
+      <h3>Rename Profile</h3>
+      <div class="form-group">
+        <label for="rename-profile-name">New Profile Name</label>
+        <input type="text" id="rename-profile-name" placeholder="e.g. Photoshop">
+      </div>
+      <div class="modal-footer">
+        <button id="btn-rename-cancel" class="btn btn-secondary">Cancel</button>
+        <button id="btn-rename-save" class="btn btn-primary">Rename</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal for About -->
+  <div id="about-modal" class="modal hidden" style="z-index: 1100;">
+    <div class="modal-content about-content">
+      <div class="about-header">
+        <img id="about-app-icon" src="AppIcon.png" alt="LoupedeckPlus App Icon" class="about-icon">
+        <div class="about-titles">
+          <h3>LoupedeckPlus</h3>
+          <p id="about-version" class="about-version-tag">Version 1.0.0</p>
+        </div>
+      </div>
+      <div class="about-body">
+        <p>Advanced custom control mapping and daemon for the Loupedeck+ console.</p>
+        <p><a href="https://github.com/vadimkozhin/LoupedeckPlus" target="_blank" class="github-link">GitHub
+            Repository</a></p>
+      </div>
+      <div class="modal-footer">
+        <button id="btn-about-close" class="btn btn-secondary">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- UI Lock Overlay -->
+  <div id="ui-lock-overlay" class="lock-overlay hidden" style="z-index: 1000;"></div>
+
+  <!-- Template for action inputs (cloned dynamically in app.js) -->
+  <template id="action-template">
+    <div class="action-type-select-group">
+      <select class="action-type-select">
+        <option value="none">No Action</option>
+        <option value="keystroke">Virtual Keystroke</option>
+        <option value="applescript">Execute AppleScript</option>
+        <option value="socket">Socket Command</option>
+      </select>
+    </div>
+
+    <!-- Keystroke Fields -->
+    <div class="action-details keystroke-details hidden">
+      <div class="input-row" style="display: flex; align-items: flex-end; gap: 8px;">
+        <div class="field-item" style="flex: 0 0 55px; max-width: 55px;">
+          <label>KEY CODE</label>
+          <input type="number" class="action-keycode" min="0" max="255" placeholder="6"
+            style="width: 100%; height: 34px; box-sizing: border-box; text-align: center; padding: 0 4px;">
+        </div>
+        <div class="field-item" style="flex: 0 0 165px; max-width: 165px;">
+          <label>Key</label>
+          <input type="text" class="keycode-mapped-char" readonly
+            style="width: 100%; height: 34px; box-sizing: border-box; color: #ffffff; font-weight: normal; background: var(--input-bg); border: 1px solid var(--input-border); pointer-events: none; text-align: center; padding: 0 4px;"
+            placeholder="-">
+        </div>
+        <div class="field-item" style="flex: 1;">
+          <label>Detect</label>
+          <button type="button" class="key-detector-btn" title="Click & press real key..."
+            style="width: 100%; height: 34px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.05); border: 1px dashed var(--border-color); border-radius: 6px; cursor: pointer; color: var(--text-main); transition: all 0.2s ease; padding: 0;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;">
+              <rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect>
+              <line x1="6" y1="8" x2="6" y2="8"></line>
+              <line x1="10" y1="8" x2="10" y2="8"></line>
+              <line x1="14" y1="8" x2="14" y2="8"></line>
+              <line x1="18" y1="8" x2="18" y2="8"></line>
+              <line x1="6" y1="12" x2="6" y2="12"></line>
+              <line x1="18" y1="12" x2="18" y2="12"></line>
+              <line x1="7" y1="16" x2="17" y2="16"></line>
+              <line x1="10" y1="12" x2="14" y2="12"></line>
+            </svg>
+          </button>
+          <input type="text" class="key-detector" readonly
+            style="position: absolute; width: 0; height: 0; opacity: 0; padding: 0; border: none;">
+        </div>
+      </div>
+      <div class="key-detector-result"
+        style="font-size: 11px; margin-top: 4px; color: var(--accent-color); min-height: 15px; font-weight: 500;"></div>
+      <div class="modifiers-checkboxes">
+        <label><input type="checkbox" class="action-mod" value="command"> ⌘ Cmd</label>
+        <label><input type="checkbox" class="action-mod" value="shift"> ⇧ Shift</label>
+        <label><input type="checkbox" class="action-mod" value="option"> ⌥ Opt</label>
+        <label><input type="checkbox" class="action-mod" value="control"> ⌃ Ctrl</label>
+      </div>
+    </div>
+
+    <!-- AppleScript Fields -->
+    <div class="action-details applescript-details hidden">
+      <label>AppleScript File</label>
+      <select class="action-script-select">
+        <option value="" disabled selected>Select script...</option>
+      </select>
+    </div>
+
+    <!-- Socket Fields -->
+    <div class="action-details socket-details hidden">
+      <label>Lua/Socket Command</label>
+      <textarea class="action-socket-command" style="width: 100%; min-height: 50px; resize: vertical;"
+        placeholder="e.g. changeAdjustmentValue('Exposure', 0.05, false)"></textarea>
+    </div>
+  </template>
+
+  <script src="app.js"></script>
+</body>
+
+</html>
