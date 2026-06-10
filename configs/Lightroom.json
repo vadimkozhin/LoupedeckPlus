@@ -1,0 +1,1084 @@
+{
+  "targetBundleIdentifier": "com.adobe.LightroomClassicCC7",
+  "hotkeys": true,
+  "apple_script": true,
+  "lightroom_socket": true,
+  "customModeButton": {
+    "press": {
+      "midiMatch": "90 75 40",
+      "action": "custom_mode_press"
+    },
+    "release": {
+      "midiMatch": "80 75 40",
+      "action": "custom_mode_release"
+    }
+  },
+  "knobs": [
+    {
+      "comment": "Exposure Knob",
+      "default": 0,
+      "press": {
+        "midiMatch": "80 21 40",
+        "socketCommand": "import('LrDevelopController').setValue('Exposure', $DEFAULT)"
+      },
+      "release": {
+        "midiMatch": "80 21 40"
+      },
+      "plus": {
+        "midiMatch": "B0 21 01",
+        "socketCommand": "changeAdjustmentValue('Exposure', 0.2, false)"
+      },
+      "minus": {
+        "midiMatch": "B0 21 7F",
+        "socketCommand": "changeAdjustmentValue('Exposure', -0.2, false)"
+      }
+    },
+    {
+      "comment": "Contrast Knob",
+      "default": 0,
+      "press": {
+        "midiMatch": "80 2E 40",
+        "socketCommand": "import('LrDevelopController').setValue('Contrast', $DEFAULT)"
+      },
+      "release": {
+        "midiMatch": "80 2E 40"
+      },
+      "plus": {
+        "midiMatch": "B0 2E 01",
+        "socketCommand": "changeAdjustmentValue('Contrast', 5.0, false)"
+      },
+      "minus": {
+        "midiMatch": "B0 2E 7F",
+        "socketCommand": "changeAdjustmentValue('Contrast', -5.0, false)"
+      }
+    },
+    {
+      "comment": "Clarity Knob",
+      "default": 0,
+      "press": {
+        "midiMatch": "80 2D 40",
+        "socketCommand": "import('LrDevelopController').setValue('Clarity', $DEFAULT)"
+      },
+      "release": {
+        "midiMatch": "80 2D 40"
+      },
+      "plus": {
+        "midiMatch": "B0 2D 01",
+        "socketCommand": "changeAdjustmentValue('Clarity', 5.0, false)"
+      },
+      "minus": {
+        "midiMatch": "B0 2D 7F",
+        "socketCommand": "changeAdjustmentValue('Clarity', -5.0, false)"
+      },
+      "cm_press": {
+        "midiMatch": "80 2D 40",
+        "socketCommand": "import('LrDevelopController').setValue('Texture', 0)"
+      },
+      "cm_release": {
+        "midiMatch": "80 2D 40"
+      },
+      "cm_plus": {
+        "midiMatch": "B0 2D 01",
+        "socketCommand": "changeAdjustmentValue('Texture', 5, false)"
+      },
+      "cm_minus": {
+        "midiMatch": "B0 2D 7F",
+        "socketCommand": "changeAdjustmentValue('Texture', -5, false)"
+      }
+    },
+    {
+      "comment": "Shadows Knob",
+      "default": 0,
+      "press": {
+        "midiMatch": "80 2C 40",
+        "socketCommand": "import('LrDevelopController').setValue('Shadows', $DEFAULT)"
+      },
+      "release": {
+        "midiMatch": "80 2C 40"
+      },
+      "plus": {
+        "midiMatch": "B0 2C 01",
+        "socketCommand": "changeAdjustmentValue('Shadows', 5.0, false)"
+      },
+      "minus": {
+        "midiMatch": "B0 2C 7F",
+        "socketCommand": "changeAdjustmentValue('Shadows', -5.0, false)"
+      },
+      "cm_press": {
+        "midiMatch": "80 2C 40",
+        "socketCommand": "import('LrDevelopController').setValue('ParametricShadows', 0)"
+      },
+      "cm_release": {
+        "midiMatch": "80 2C 40"
+      },
+      "cm_plus": {
+        "midiMatch": "B0 2C 01",
+        "socketCommand": "changeAdjustmentValue('ParametricShadows', 5.0, false)"
+      },
+      "cm_minus": {
+        "midiMatch": "B0 2C 7F",
+        "socketCommand": "changeAdjustmentValue('ParametricShadows', -5.0, false)"
+      }
+    },
+    {
+      "comment": "Highlights Knob",
+      "default": 0,
+      "press": {
+        "midiMatch": "80 28 40",
+        "socketCommand": "import('LrDevelopController').setValue('Highlights', $DEFAULT)"
+      },
+      "release": {
+        "midiMatch": "80 28 40"
+      },
+      "plus": {
+        "midiMatch": "B0 28 01",
+        "socketCommand": "changeAdjustmentValue('Highlights', 5.0, false)"
+      },
+      "minus": {
+        "midiMatch": "B0 28 7F",
+        "socketCommand": "changeAdjustmentValue('Highlights', -5.0, false)"
+      },
+      "cm_press": {
+        "midiMatch": "80 28 40",
+        "socketCommand": "import('LrDevelopController').setValue('ParametricHighlights', 0)"
+      },
+      "cm_release": {
+        "midiMatch": "80 28 40"
+      },
+      "cm_plus": {
+        "midiMatch": "B0 28 01",
+        "socketCommand": "changeAdjustmentValue('ParametricHighlights', 5.0, false)"
+      },
+      "cm_minus": {
+        "midiMatch": "B0 28 7F",
+        "socketCommand": "changeAdjustmentValue('ParametricHighlights', -5.0, false)"
+      }
+    },
+    {
+      "comment": "Blacks Knob",
+      "default": 0,
+      "press": {
+        "midiMatch": "80 22 40",
+        "socketCommand": "import('LrDevelopController').setValue('Blacks', $DEFAULT)"
+      },
+      "release": {
+        "midiMatch": "80 22 40"
+      },
+      "plus": {
+        "midiMatch": "B0 22 01",
+        "socketCommand": "changeAdjustmentValue('Blacks', 5.0, false)"
+      },
+      "minus": {
+        "midiMatch": "B0 22 7F",
+        "socketCommand": "changeAdjustmentValue('Blacks', -5.0, false)"
+      },
+      "cm_press": {
+        "midiMatch": "80 22 40",
+        "socketCommand": "import('LrDevelopController').setValue('ParametricDarks', 0)"
+      },
+      "cm_release": {
+        "midiMatch": "80 22 40"
+      },
+      "cm_plus": {
+        "midiMatch": "B0 22 01",
+        "socketCommand": "changeAdjustmentValue('ParametricDarks', 5.0, false)"
+      },
+      "cm_minus": {
+        "midiMatch": "B0 22 7F",
+        "socketCommand": "changeAdjustmentValue('ParametricDarks', -5.0, false)"
+      }
+    },
+    {
+      "comment": "Whites Knob",
+      "default": 0,
+      "press": {
+        "midiMatch": "80 23 40",
+        "socketCommand": "import('LrDevelopController').setValue('Whites', $DEFAULT)"
+      },
+      "release": {
+        "midiMatch": "80 23 40"
+      },
+      "plus": {
+        "midiMatch": "B0 23 01",
+        "socketCommand": "changeAdjustmentValue('Whites', 5.0, false)"
+      },
+      "minus": {
+        "midiMatch": "B0 23 7F",
+        "socketCommand": "changeAdjustmentValue('Whites', -5.0, false)"
+      },
+      "cm_press": {
+        "midiMatch": "80 23 40",
+        "socketCommand": "import('LrDevelopController').setValue('ParametricLights', 0)"
+      },
+      "cm_release": {
+        "midiMatch": "80 23 40"
+      },
+      "cm_plus": {
+        "midiMatch": "B0 23 01",
+        "socketCommand": "changeAdjustmentValue('ParametricLights', 5.0, false)"
+      },
+      "cm_minus": {
+        "midiMatch": "B0 23 7F",
+        "socketCommand": "changeAdjustmentValue('ParametricLights', -5.0, false)"
+      }
+    },
+    {
+      "comment": "Saturation Knob",
+      "default": 0,
+      "press": {
+        "midiMatch": "80 24 40",
+        "socketCommand": "import('LrDevelopController').setValue('Saturation', $DEFAULT)"
+      },
+      "release": {
+        "midiMatch": "80 24 40"
+      },
+      "plus": {
+        "midiMatch": "B0 24 01",
+        "socketCommand": "changeAdjustmentValue('Saturation', 5.0, false)"
+      },
+      "minus": {
+        "midiMatch": "B0 24 7F",
+        "socketCommand": "changeAdjustmentValue('Saturation', -5.0, false)"
+      }
+    },
+    {
+      "comment": "Temperature Knob",
+      "default": 0,
+      "press": {
+        "midiMatch": "90 26 40",
+        "socketCommand": "local LrDevelopController = import('LrDevelopController'); local currentTint = LrDevelopController.getValue('Tint'); LrDevelopController.setValue('WhiteBalance', 'As Shot'); if currentTint then LrDevelopController.setValue('Tint', currentTint) end"
+      },
+      "release": {
+        "midiMatch": "80 26 40"
+      },
+      "plus": {
+        "midiMatch": "B0 26 01",
+        "socketCommand": "changeTemperatureValue('Temperature', 5.0)"
+      },
+      "minus": {
+        "midiMatch": "B0 26 7F",
+        "socketCommand": "changeTemperatureValue('Temperature', -5.0)"
+      }
+    },
+    {
+      "comment": "Tint Knob",
+      "default": 0,
+      "press": {
+        "midiMatch": "90 27 40",
+        "socketCommand": "local LrDevelopController = import('LrDevelopController'); local currentTemp = LrDevelopController.getValue('Temperature'); LrDevelopController.setValue('WhiteBalance', 'As Shot'); if currentTemp then LrDevelopController.setValue('Temperature', currentTemp) end"
+      },
+      "release": {
+        "midiMatch": "80 27 40"
+      },
+      "plus": {
+        "midiMatch": "B0 27 01",
+        "socketCommand": "changeAdjustmentValue('Tint', 5.0, false)"
+      },
+      "minus": {
+        "midiMatch": "B0 27 7F",
+        "socketCommand": "changeAdjustmentValue('Tint', -5.0, false)"
+      }
+    },
+    {
+      "comment": "Vibrance Knob",
+      "default": 0,
+      "press": {
+        "midiMatch": "80 25 40",
+        "socketCommand": "import('LrDevelopController').setValue('Vibrance', $DEFAULT)"
+      },
+      "release": {
+        "midiMatch": "80 25 40"
+      },
+      "plus": {
+        "midiMatch": "B0 25 01",
+        "socketCommand": "changeAdjustmentValue('Vibrance', 5.0, false)"
+      },
+      "minus": {
+        "midiMatch": "B0 25 7F",
+        "socketCommand": "changeAdjustmentValue('Vibrance', -5.0, false)"
+      }
+    },
+    {
+      "comment": "Red Wheel - Hue",
+      "press": {
+        "midiMatch": "80 01 40",
+        "socketCommand": "import('LrDevelopController').setValue('HueAdjustmentRed', $DEFAULT)"
+      },
+      "plus": {
+        "midiMatch": "B0 01 01",
+        "socketCommand": "changeAdjustmentValue('HueAdjustmentRed', 5.0, false)"
+      },
+      "minus": {
+        "midiMatch": "B0 01 7F",
+        "socketCommand": "changeAdjustmentValue('HueAdjustmentRed', -5.0, false)"
+      }
+    },
+    {
+      "comment": "Red Wheel - Sat",
+      "press": {
+        "midiMatch": "80 09 40",
+        "socketCommand": "import('LrDevelopController').setValue('SaturationAdjustmentRed', $DEFAULT)"
+      },
+      "plus": {
+        "midiMatch": "B0 09 01",
+        "socketCommand": "changeAdjustmentValue('SaturationAdjustmentRed', 5.0, false)"
+      },
+      "minus": {
+        "midiMatch": "B0 09 7F",
+        "socketCommand": "changeAdjustmentValue('SaturationAdjustmentRed', -5.0, false)"
+      }
+    },
+    {
+      "comment": "Red Wheel - Lum",
+      "press": {
+        "midiMatch": "80 11 40",
+        "socketCommand": "import('LrDevelopController').setValue('LuminanceAdjustmentRed', $DEFAULT)"
+      },
+      "plus": {
+        "midiMatch": "B0 11 01",
+        "socketCommand": "changeAdjustmentValue('LuminanceAdjustmentRed', 5.0, false)"
+      },
+      "minus": {
+        "midiMatch": "B0 11 7F",
+        "socketCommand": "changeAdjustmentValue('LuminanceAdjustmentRed', -5.0, false)"
+      }
+    },
+    {
+      "comment": "Orange Wheel - Hue",
+      "press": {
+        "midiMatch": "80 02 40",
+        "socketCommand": "import('LrDevelopController').setValue('HueAdjustmentOrange', $DEFAULT)"
+      },
+      "plus": {
+        "midiMatch": "B0 02 01",
+        "socketCommand": "changeAdjustmentValue('HueAdjustmentOrange', 5.0, false)"
+      },
+      "minus": {
+        "midiMatch": "B0 02 7F",
+        "socketCommand": "changeAdjustmentValue('HueAdjustmentOrange', -5.0, false)"
+      }
+    },
+    {
+      "comment": "Orange Wheel - Sat",
+      "press": {
+        "midiMatch": "80 0A 40",
+        "socketCommand": "import('LrDevelopController').setValue('SaturationAdjustmentOrange', $DEFAULT)"
+      },
+      "plus": {
+        "midiMatch": "B0 0A 01",
+        "socketCommand": "changeAdjustmentValue('SaturationAdjustmentOrange', 5.0, false)"
+      },
+      "minus": {
+        "midiMatch": "B0 0A 7F",
+        "socketCommand": "changeAdjustmentValue('SaturationAdjustmentOrange', -5.0, false)"
+      }
+    },
+    {
+      "comment": "Orange Wheel - Lum",
+      "press": {
+        "midiMatch": "80 12 40",
+        "socketCommand": "import('LrDevelopController').setValue('LuminanceAdjustmentOrange', $DEFAULT)"
+      },
+      "plus": {
+        "midiMatch": "B0 12 01",
+        "socketCommand": "changeAdjustmentValue('LuminanceAdjustmentOrange', 5.0, false)"
+      },
+      "minus": {
+        "midiMatch": "B0 12 7F",
+        "socketCommand": "changeAdjustmentValue('LuminanceAdjustmentOrange', -5.0, false)"
+      }
+    },
+    {
+      "comment": "Yellow Wheel - Hue",
+      "press": {
+        "midiMatch": "80 03 40",
+        "socketCommand": "import('LrDevelopController').setValue('HueAdjustmentYellow', $DEFAULT)"
+      },
+      "plus": {
+        "midiMatch": "B0 03 01",
+        "socketCommand": "changeAdjustmentValue('HueAdjustmentYellow', 5.0, false)"
+      },
+      "minus": {
+        "midiMatch": "B0 03 7F",
+        "socketCommand": "changeAdjustmentValue('HueAdjustmentYellow', -5.0, false)"
+      }
+    },
+    {
+      "comment": "Yellow Wheel - Sat",
+      "press": {
+        "midiMatch": "80 0B 40",
+        "socketCommand": "import('LrDevelopController').setValue('SaturationAdjustmentYellow', $DEFAULT)"
+      },
+      "plus": {
+        "midiMatch": "B0 0B 01",
+        "socketCommand": "changeAdjustmentValue('SaturationAdjustmentYellow', 5.0, false)"
+      },
+      "minus": {
+        "midiMatch": "B0 0B 7F",
+        "socketCommand": "changeAdjustmentValue('SaturationAdjustmentYellow', -5.0, false)"
+      }
+    },
+    {
+      "comment": "Yellow Wheel - Lum",
+      "press": {
+        "midiMatch": "80 13 40",
+        "socketCommand": "import('LrDevelopController').setValue('LuminanceAdjustmentYellow', $DEFAULT)"
+      },
+      "plus": {
+        "midiMatch": "B0 13 01",
+        "socketCommand": "changeAdjustmentValue('LuminanceAdjustmentYellow', 5.0, false)"
+      },
+      "minus": {
+        "midiMatch": "B0 13 7F",
+        "socketCommand": "changeAdjustmentValue('LuminanceAdjustmentYellow', -5.0, false)"
+      }
+    },
+    {
+      "comment": "Green Wheel - Hue",
+      "press": {
+        "midiMatch": "80 04 40",
+        "socketCommand": "import('LrDevelopController').setValue('HueAdjustmentGreen', $DEFAULT)"
+      },
+      "plus": {
+        "midiMatch": "B0 04 01",
+        "socketCommand": "changeAdjustmentValue('HueAdjustmentGreen', 5.0, false)"
+      },
+      "minus": {
+        "midiMatch": "B0 04 7F",
+        "socketCommand": "changeAdjustmentValue('HueAdjustmentGreen', -5.0, false)"
+      }
+    },
+    {
+      "comment": "Green Wheel - Sat",
+      "press": {
+        "midiMatch": "80 0C 40",
+        "socketCommand": "import('LrDevelopController').setValue('SaturationAdjustmentGreen', $DEFAULT)"
+      },
+      "plus": {
+        "midiMatch": "B0 0C 01",
+        "socketCommand": "changeAdjustmentValue('SaturationAdjustmentGreen', 5.0, false)"
+      },
+      "minus": {
+        "midiMatch": "B0 0C 7F",
+        "socketCommand": "changeAdjustmentValue('SaturationAdjustmentGreen', -5.0, false)"
+      }
+    },
+    {
+      "comment": "Green Wheel - Lum",
+      "press": {
+        "midiMatch": "80 14 40",
+        "socketCommand": "import('LrDevelopController').setValue('LuminanceAdjustmentGreen', $DEFAULT)"
+      },
+      "plus": {
+        "midiMatch": "B0 14 01",
+        "socketCommand": "changeAdjustmentValue('LuminanceAdjustmentGreen', 5.0, false)"
+      },
+      "minus": {
+        "midiMatch": "B0 14 7F",
+        "socketCommand": "changeAdjustmentValue('LuminanceAdjustmentGreen', -5.0, false)"
+      }
+    },
+    {
+      "comment": "Cyan Wheel - Hue",
+      "press": {
+        "midiMatch": "80 05 40",
+        "socketCommand": "import('LrDevelopController').setValue('HueAdjustmentAqua', $DEFAULT)"
+      },
+      "plus": {
+        "midiMatch": "B0 05 01",
+        "socketCommand": "changeAdjustmentValue('HueAdjustmentAqua', 5.0, false)"
+      },
+      "minus": {
+        "midiMatch": "B0 05 7F",
+        "socketCommand": "changeAdjustmentValue('HueAdjustmentAqua', -5.0, false)"
+      }
+    },
+    {
+      "comment": "Cyan Wheel - Sat",
+      "press": {
+        "midiMatch": "80 0D 40",
+        "socketCommand": "import('LrDevelopController').setValue('SaturationAdjustmentAqua', $DEFAULT)"
+      },
+      "plus": {
+        "midiMatch": "B0 0D 01",
+        "socketCommand": "changeAdjustmentValue('SaturationAdjustmentAqua', 5.0, false)"
+      },
+      "minus": {
+        "midiMatch": "B0 0D 7F",
+        "socketCommand": "changeAdjustmentValue('SaturationAdjustmentAqua', -5.0, false)"
+      }
+    },
+    {
+      "comment": "Cyan Wheel - Lum",
+      "press": {
+        "midiMatch": "80 15 40",
+        "socketCommand": "import('LrDevelopController').setValue('LuminanceAdjustmentAqua', $DEFAULT)"
+      },
+      "plus": {
+        "midiMatch": "B0 15 01",
+        "socketCommand": "changeAdjustmentValue('LuminanceAdjustmentAqua', 5.0, false)"
+      },
+      "minus": {
+        "midiMatch": "B0 15 7F",
+        "socketCommand": "changeAdjustmentValue('LuminanceAdjustmentAqua', -5.0, false)"
+      }
+    },
+    {
+      "comment": "Blue Wheel - Hue",
+      "press": {
+        "midiMatch": "80 06 40",
+        "socketCommand": "import('LrDevelopController').setValue('HueAdjustmentBlue', $DEFAULT)"
+      },
+      "plus": {
+        "midiMatch": "B0 06 01",
+        "socketCommand": "changeAdjustmentValue('HueAdjustmentBlue', 5.0, false)"
+      },
+      "minus": {
+        "midiMatch": "B0 06 7F",
+        "socketCommand": "changeAdjustmentValue('HueAdjustmentBlue', -5.0, false)"
+      }
+    },
+    {
+      "comment": "Blue Wheel - Sat",
+      "press": {
+        "midiMatch": "80 0E 40",
+        "socketCommand": "import('LrDevelopController').setValue('SaturationAdjustmentBlue', $DEFAULT)"
+      },
+      "plus": {
+        "midiMatch": "B0 0E 01",
+        "socketCommand": "changeAdjustmentValue('SaturationAdjustmentBlue', 5.0, false)"
+      },
+      "minus": {
+        "midiMatch": "B0 0E 7F",
+        "socketCommand": "changeAdjustmentValue('SaturationAdjustmentBlue', -5.0, false)"
+      }
+    },
+    {
+      "comment": "Blue Wheel - Lum",
+      "press": {
+        "midiMatch": "80 16 40",
+        "socketCommand": "import('LrDevelopController').setValue('LuminanceAdjustmentBlue', $DEFAULT)"
+      },
+      "plus": {
+        "midiMatch": "B0 16 01",
+        "socketCommand": "changeAdjustmentValue('LuminanceAdjustmentBlue', 5.0, false)"
+      },
+      "minus": {
+        "midiMatch": "B0 16 7F",
+        "socketCommand": "changeAdjustmentValue('LuminanceAdjustmentBlue', -5.0, false)"
+      }
+    },
+    {
+      "comment": "Violet Wheel - Hue",
+      "press": {
+        "midiMatch": "80 07 40",
+        "socketCommand": "import('LrDevelopController').setValue('HueAdjustmentPurple', $DEFAULT)"
+      },
+      "plus": {
+        "midiMatch": "B0 07 01",
+        "socketCommand": "changeAdjustmentValue('HueAdjustmentPurple', 5.0, false)"
+      },
+      "minus": {
+        "midiMatch": "B0 07 7F",
+        "socketCommand": "changeAdjustmentValue('HueAdjustmentPurple', -5.0, false)"
+      }
+    },
+    {
+      "comment": "Violet Wheel - Sat",
+      "press": {
+        "midiMatch": "80 0F 40",
+        "socketCommand": "import('LrDevelopController').setValue('SaturationAdjustmentPurple', $DEFAULT)"
+      },
+      "plus": {
+        "midiMatch": "B0 0F 01",
+        "socketCommand": "changeAdjustmentValue('SaturationAdjustmentPurple', 5.0, false)"
+      },
+      "minus": {
+        "midiMatch": "B0 0F 7F",
+        "socketCommand": "changeAdjustmentValue('SaturationAdjustmentPurple', -5.0, false)"
+      }
+    },
+    {
+      "comment": "Violet Wheel - Lum",
+      "press": {
+        "midiMatch": "80 17 40",
+        "socketCommand": "import('LrDevelopController').setValue('LuminanceAdjustmentPurple', $DEFAULT)"
+      },
+      "plus": {
+        "midiMatch": "B0 17 01",
+        "socketCommand": "changeAdjustmentValue('LuminanceAdjustmentPurple', 5.0, false)"
+      },
+      "minus": {
+        "midiMatch": "B0 17 7F",
+        "socketCommand": "changeAdjustmentValue('LuminanceAdjustmentPurple', -5.0, false)"
+      }
+    },
+    {
+      "comment": "Magenta Wheel - Hue",
+      "press": {
+        "midiMatch": "80 08 40",
+        "socketCommand": "import('LrDevelopController').setValue('HueAdjustmentMagenta', $DEFAULT)"
+      },
+      "plus": {
+        "midiMatch": "B0 08 01",
+        "socketCommand": "changeAdjustmentValue('HueAdjustmentMagenta', 5.0, false)"
+      },
+      "minus": {
+        "midiMatch": "B0 08 7F",
+        "socketCommand": "changeAdjustmentValue('HueAdjustmentMagenta', -5.0, false)"
+      }
+    },
+    {
+      "comment": "Magenta Wheel - Sat",
+      "press": {
+        "midiMatch": "80 10 40",
+        "socketCommand": "import('LrDevelopController').setValue('SaturationAdjustmentMagenta', $DEFAULT)"
+      },
+      "plus": {
+        "midiMatch": "B0 10 01",
+        "socketCommand": "changeAdjustmentValue('SaturationAdjustmentMagenta', 5.0, false)"
+      },
+      "minus": {
+        "midiMatch": "B0 10 7F",
+        "socketCommand": "changeAdjustmentValue('SaturationAdjustmentMagenta', -5.0, false)"
+      }
+    },
+    {
+      "comment": "Magenta Wheel - Lum",
+      "press": {
+        "midiMatch": "80 18 40",
+        "socketCommand": "import('LrDevelopController').setValue('LuminanceAdjustmentMagenta', $DEFAULT)"
+      },
+      "plus": {
+        "midiMatch": "B0 18 01",
+        "socketCommand": "changeAdjustmentValue('LuminanceAdjustmentMagenta', 5.0, false)"
+      },
+      "minus": {
+        "midiMatch": "B0 18 7F",
+        "socketCommand": "changeAdjustmentValue('LuminanceAdjustmentMagenta', -5.0, false)"
+      }
+    },
+    {
+      "comment": "Control Dial",
+      "press": {
+        "midiMatch": "90 30 40"
+      },
+      "release": {
+        "midiMatch": "80 30 40"
+      },
+      "plus": {
+        "midiMatch": "B0 30 01",
+        "keyCode": 124
+      },
+      "minus": {
+        "midiMatch": "B0 30 7F",
+        "keyCode": 123
+      }
+    },
+    {
+      "comment": "D1 knob",
+      "press": {
+        "midiMatch": "80 29 40",
+        "socketCommand": "import('LrDevelopController').setValue('Dehaze', 0)"
+      },
+      "release": {
+        "midiMatch": "80 29 40"
+      },
+      "plus": {
+        "midiMatch": "B0 29 01",
+        "socketCommand": "changeAdjustmentValue('Dehaze', 5, false)"
+      },
+      "minus": {
+        "midiMatch": "B0 29 7F",
+        "socketCommand": "changeAdjustmentValue('Dehaze', -5, false)"
+      },
+      "cm_press": {
+        "midiMatch": "80 29 40",
+        "socketCommand": "import('LrDevelopController').setValue('PostCropVignetteAmount', 0)"
+      },
+      "cm_release": {
+        "midiMatch": "80 29 40"
+      },
+      "cm_plus": {
+        "midiMatch": "B0 29 01",
+        "socketCommand": "changeAdjustmentValue('PostCropVignetteAmount', 5, false)"
+      },
+      "cm_minus": {
+        "midiMatch": "B0 29 7F",
+        "socketCommand": "changeAdjustmentValue('PostCropVignetteAmount', -5, false)"
+      }
+    },
+    {
+      "comment": "D2 knob",
+      "press": {
+        "midiMatch": "80 2A 40",
+        "socketCommand": "import('LrDevelopController').setValue('Sharpness', 0)"
+      },
+      "release": {
+        "midiMatch": "80 2A 40"
+      },
+      "plus": {
+        "midiMatch": "B0 2A 01",
+        "socketCommand": "changeAdjustmentValue('Sharpness', 5, false)"
+      },
+      "minus": {
+        "midiMatch": "B0 2A 7F",
+        "socketCommand": "changeAdjustmentValue('Sharpness', -5, false)"
+      },
+      "cm_press": {
+        "midiMatch": "80 2A 40",
+        "socketCommand": "import('LrDevelopController').setValue('LuminanceSmoothing', 0)"
+      },
+      "cm_release": {
+        "midiMatch": "80 2A 40"
+      },
+      "cm_plus": {
+        "midiMatch": "B0 2A 01",
+        "socketCommand": "changeAdjustmentValue('LuminanceSmoothing', 5, false)"
+      },
+      "cm_minus": {
+        "midiMatch": "B0 2A 7F",
+        "socketCommand": "changeAdjustmentValue('LuminanceSmoothing', -5, false)"
+      }
+    }
+  ],
+  "buttons": [
+    {
+      "comment": "Undo",
+      "press": {
+        "midiMatch": "90 5F 40",
+        "socketCommand": "import('LrUndo').undo()"
+      },
+      "release": {
+        "midiMatch": "80 5F 40"
+      }
+    },
+    {
+      "comment": "Redo",
+      "press": {
+        "midiMatch": "90 60 40",
+        "socketCommand": "import('LrUndo').redo()"
+      },
+      "release": {
+        "midiMatch": "80 60 40"
+      }
+    },
+    {
+      "comment": "Auto tone",
+      "press": {
+        "midiMatch": "90 33 40",
+        "keyCode": 32,
+        "modifiers": [
+          "command"
+        ]
+      },
+      "release": {
+        "midiMatch": "80 33 40"
+      }
+    },
+    {
+      "comment": "ColorTag --/col (Clear)",
+      "press": {
+        "midiMatch": "90 41 40",
+        "keyCode": 29
+      },
+      "release": {
+        "midiMatch": "80 41 40"
+      }
+    },
+    {
+      "comment": "ColorTag red",
+      "press": {
+        "midiMatch": "90 42 40",
+        "keyCode": 18
+      },
+      "release": {
+        "midiMatch": "80 42 40"
+      }
+    },
+    {
+      "comment": "ColorTag yellow",
+      "press": {
+        "midiMatch": "90 43 40",
+        "keyCode": 19
+      },
+      "release": {
+        "midiMatch": "80 43 40"
+      }
+    },
+    {
+      "comment": "ColorTag green",
+      "press": {
+        "midiMatch": "90 44 40",
+        "keyCode": 20
+      },
+      "release": {
+        "midiMatch": "80 44 40"
+      }
+    },
+    {
+      "comment": "ColorTag blue",
+      "press": {
+        "midiMatch": "90 45 40",
+        "keyCode": 21
+      },
+      "release": {
+        "midiMatch": "80 45 40"
+      }
+    },
+    {
+      "comment": "ColorTag violet",
+      "press": {
+        "midiMatch": "90 46 40",
+        "keyCode": 23
+      },
+      "release": {
+        "midiMatch": "80 46 40"
+      }
+    },
+    {
+      "comment": "Clr/BW",
+      "press": {
+        "midiMatch": "90 65 40",
+        "keyCode": 9
+      },
+      "release": {
+        "midiMatch": "80 65 40"
+      }
+    },
+    {
+      "comment": "Before/After Toggle",
+      "press": {
+        "midiMatch": "90 66 40",
+        "keyCode": 16,
+        "modifiers": [
+          "shift"
+        ]
+      },
+      "release": {
+        "midiMatch": "80 66 40"
+      },
+      "cm_press": {
+        "midiMatch": "90 66 40",
+        "keyCode": 42
+      }
+    },
+    {
+      "comment": "Screen Mode",
+      "press": {
+        "midiMatch": "90 61 40",
+        "keyCode": 3
+      },
+      "release": {
+        "midiMatch": "80 61 40"
+      },
+      "cm_press": {
+        "midiMatch": "90 61 40",
+        "keyCode": 48
+      }
+    },
+    {
+      "comment": "Export Dialog",
+      "press": {
+        "midiMatch": "90 58 40",
+        "keyCode": 14,
+        "modifiers": [
+          "command",
+          "shift"
+        ]
+      },
+      "release": {
+        "midiMatch": "80 58 40"
+      },
+      "fn_press": {
+        "midiMatch": "90 58 40",
+        "keyCode": 14,
+        "modifiers": [
+          "command",
+          "shift",
+          "option"
+        ]
+      }
+    },
+    {
+      "comment": "Zoom-In",
+      "press": {
+        "midiMatch": "90 35 40",
+        "keyCode": 6
+      },
+      "release": {
+        "midiMatch": "80 35 40"
+      }
+    },
+    {
+      "comment": "C6",
+      "press": {
+        "midiMatch": "90 36 40",
+        "socketCommand": "import('LrApplication').activeCatalog():withWriteAccessDo('Toggle Target Collection', function() local p = import('LrApplication').activeCatalog():getTargetPhoto(); if p then p:addOrRemoveFromTargetCollection() end end)"
+      },
+      "release": {
+        "midiMatch": "80 36 40"
+      }
+    },
+    {
+      "comment": "L3",
+      "press": {
+        "midiMatch": "90 74 40"
+      },
+      "release": {
+        "midiMatch": "80 74 40"
+      }
+    },
+    {
+      "comment": "L2",
+      "press": {
+        "midiMatch": "90 73 40"
+      },
+      "release": {
+        "midiMatch": "80 73 40"
+      }
+    },
+    {
+      "comment": "L1",
+      "press": {
+        "midiMatch": "90 72 40"
+      },
+      "release": {
+        "midiMatch": "80 72 40"
+      }
+    },
+    {
+      "comment": "Copy Adjustments",
+      "press": {
+        "midiMatch": "90 5C 40",
+        "socketCommand": "copyDevelopSettings(false)"
+      },
+      "release": {
+        "midiMatch": "80 5C 40"
+      },
+      "cm_press": {
+        "midiMatch": "90 5C 40",
+        "socketCommand": "local catalog = import('LrApplication').activeCatalog(); catalog:withWriteAccessDo('CreateVirtualCopy', function() catalog:createVirtualCopies() end)"
+      }
+    },
+    {
+      "comment": "Paste Adjustments",
+      "press": {
+        "midiMatch": "90 5D 40",
+        "socketCommand": "pasteDevelopSettings(false)"
+      },
+      "release": {
+        "midiMatch": "80 5D 40"
+      },
+      "cm_press": {
+        "midiMatch": "90 5D 40",
+        "keyCode": 9,
+        "modifiers": [
+          "command",
+          "option"
+        ]
+      }
+    },
+    {
+      "comment": "C1",
+      "press": {
+        "midiMatch": "90 31 40"
+      },
+      "release": {
+        "midiMatch": "80 31 40"
+      }
+    },
+    {
+      "comment": "C2",
+      "press": {
+        "midiMatch": "90 32 40"
+      },
+      "release": {
+        "midiMatch": "80 32 40"
+      }
+    },
+    {
+      "comment": "Left Arrow",
+      "press": {
+        "midiMatch": "90 4E 40",
+        "keyCode": 123
+      },
+      "release": {
+        "midiMatch": "80 4E 40"
+      }
+    },
+    {
+      "comment": "Right Arrow",
+      "press": {
+        "midiMatch": "90 4F 40",
+        "keyCode": 124
+      },
+      "release": {
+        "midiMatch": "80 4F 40"
+      }
+    },
+    {
+      "comment": "P8",
+      "press": {
+        "midiMatch": "90 57 40"
+      },
+      "release": {
+        "midiMatch": "80 57 40"
+      }
+    },
+    {
+      "comment": "C4",
+      "press": {
+        "midiMatch": "90 34 40",
+        "keyCode": 32,
+        "modifiers": [
+          "command",
+          "shift"
+        ]
+      },
+      "release": {
+        "midiMatch": "80 34 40"
+      },
+      "cm_press": {
+        "midiMatch": "90 34 40",
+        "keyCode": 38
+      }
+    },
+
+    {
+      "comment": "C3",
+      "press": {
+        "midiMatch": "90 33 40",
+        "keyCode": 32,
+        "modifiers": [
+          "shift"
+        ]
+      },
+      "release": {
+        "midiMatch": "80 33 40"
+      },
+      "cm_press": {
+        "midiMatch": "90 33 40",
+        "keyCode": 31
+      }
+    },
+    {
+      "comment": "Up Arrow",
+      "press": {
+        "midiMatch": "90 4C 40"
+      },
+      "release": {
+        "midiMatch": "80 4C 40"
+      }
+    },
+    {
+      "comment": "Down Arrow",
+      "press": {
+        "midiMatch": "90 4D 40"
+      },
+      "release": {
+        "midiMatch": "80 4D 40"
+      }
+    }
+  ]
+}
