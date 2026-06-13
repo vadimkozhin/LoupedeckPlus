@@ -636,6 +636,91 @@ public final class ConfigurationWindowController: NSObject, NSWindowDelegate, WK
                 }
             }
         }
+        
+        // Run migration on existing configs to ensure the Fn button is properly mapped
+        migrateConfigs()
+    }
+    
+    private static func migrateConfigs() {
+        let fm = FileManager.default
+        let userConfigsDir = getConfigsDirectoryURL()
+        if let contents = try? fm.contentsOfDirectory(at: userConfigsDir, includingPropertiesForKeys: nil, options: []) {
+            let jsonFiles = contents.filter { $0.pathExtension.lowercased() == "json" }
+            for fileURL in jsonFiles {
+                migrateConfigIfNeeded(fileURL: fileURL)
+            }
+        }
+    }
+    
+    private static func migrateConfigIfNeeded(fileURL: URL) {
+        guard let data = try? Data(contentsOf: fileURL),
+              var json = (try? JSONSerialization.jsonObject(with: data, options: [])) as? [String: Any] else {
+            return
+        }
+        
+        var modified = false
+        var buttons = json["buttons"] as? [[String: Any]] ?? []
+        
+        // Find if "Fn Button" is present in buttons
+        var fnButtonIndex: Int? = nil
+        for (index, button) in buttons.enumerated() {
+            if let comment = button["comment"] as? String, comment == "Fn Button" {
+                fnButtonIndex = index
+                break
+            }
+            // Fallback check by midiMatch
+            if let press = button["press"] as? [String: Any], let midi = press["midiMatch"] as? String, midi.contains("6E") {
+                fnButtonIndex = index
+                break
+            }
+        }
+        
+        if let idx = fnButtonIndex {
+            var button = buttons[idx]
+            var press = button["press"] as? [String: Any] ?? [:]
+            var release = button["release"] as? [String: Any] ?? [:]
+            
+            if (press["action"] as? String) != "fn_press" {
+                press["action"] = "fn_press"
+                button["press"] = press
+                modified = true
+            }
+            if (release["action"] as? String) != "fn_release" {
+                release["action"] = "fn_release"
+                button["release"] = release
+                modified = true
+            }
+            if modified {
+                buttons[idx] = button
+            }
+        } else {
+            // Append the Fn Button mapping to the buttons array
+            let fnButton: [String: Any] = [
+                "comment": "Fn Button",
+                "press": [
+                    "midiMatch": "90 6E 40",
+                    "action": "fn_press"
+                ],
+                "release": [
+                    "midiMatch": "80 6E 40",
+                    "action": "fn_release"
+                ]
+            ]
+            buttons.append(fnButton)
+            modified = true
+        }
+        
+        if modified {
+            json["buttons"] = buttons
+            if let updatedData = try? JSONSerialization.data(withJSONObject: json, options: [.prettyPrinted]) {
+                do {
+                    try updatedData.write(to: fileURL)
+                    print("[Migration] Successfully migrated Fn button mapping in profile: \(fileURL.lastPathComponent)")
+                } catch {
+                    print("[Migration] Error writing profile \(fileURL.lastPathComponent): \(error.localizedDescription)")
+                }
+            }
+        }
     }
     
     // MARK: - WKNavigationDelegate

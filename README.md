@@ -95,5 +95,10 @@ Run the build script and see available options:
 ```
 
 ## Version History
+0.5.2
+- Fixes Fn button mapping for dynamic profile switching, Lightroom affected
+- Ability to add precise increments in Lightroom.
+Examples:
+`local LrDevelopController = import('LrDevelopController'); local val = LrDevelopController.getValue('Temperature'); if val then LrDevelopController.setValue('Temperature', val + 50) end` - increase Temperature by 50
 
 0.5.1 - public release

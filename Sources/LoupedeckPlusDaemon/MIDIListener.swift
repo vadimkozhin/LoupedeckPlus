@@ -79,6 +79,26 @@ public final class MIDIListener: @unchecked Sendable {
                 }
             }
         }
+        if foundPress == nil {
+            foundPress = KeyAction(
+                midiMatch: "90 6E *",
+                keyCode: nil,
+                modifiers: nil,
+                action: "fn_press",
+                relativeMode: nil,
+                socketCommand: nil
+            )
+        }
+        if foundRelease == nil {
+            foundRelease = KeyAction(
+                midiMatch: "80 6E *",
+                keyCode: nil,
+                modifiers: nil,
+                action: "fn_release",
+                relativeMode: nil,
+                socketCommand: nil
+            )
+        }
         self.fnPressAction = foundPress
         self.fnReleaseAction = foundRelease
         
@@ -851,6 +871,26 @@ public final class MIDIListener: @unchecked Sendable {
                     }
                 }
             }
+        }
+        if foundPress == nil {
+            foundPress = KeyAction(
+                midiMatch: "90 6E *",
+                keyCode: nil,
+                modifiers: nil,
+                action: "fn_press",
+                relativeMode: nil,
+                socketCommand: nil
+            )
+        }
+        if foundRelease == nil {
+            foundRelease = KeyAction(
+                midiMatch: "80 6E *",
+                keyCode: nil,
+                modifiers: nil,
+                action: "fn_release",
+                relativeMode: nil,
+                socketCommand: nil
+            )
         }
         
         os_unfair_lock_lock(&lock)

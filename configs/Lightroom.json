@@ -1044,7 +1044,6 @@
         "keyCode": 38
       }
     },
-
     {
       "comment": "C3",
       "press": {
@@ -1078,6 +1077,17 @@
       },
       "release": {
         "midiMatch": "80 4D 40"
+      }
+    },
+    {
+      "comment": "Fn Button",
+      "press": {
+        "midiMatch": "90 6E 40",
+        "action": "fn_press"
+      },
+      "release": {
+        "midiMatch": "80 6E 40",
+        "action": "fn_release"
       }
     }
   ]
