@@ -162,7 +162,7 @@ public struct ButtonMapping: Codable {
 
 public struct Config: Codable {
     // Application version tag - update this value when releasing new versions
-    public static let appVersion = "0.5.2"
+    public static let appVersion = "0.5.3"
 
     public let targetBundleIdentifier: String
     public let hotkeys: Bool?

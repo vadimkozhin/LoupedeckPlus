@@ -95,6 +95,8 @@ Run the build script and see available options:
 ```
 
 ## Version History
+0.5.3 - extended error messages (issue #2)
+
 0.5.2
 - Fixes Fn button mapping for dynamic profile switching, Lightroom affected
 - Ability to add precise increments in Lightroom.

@@ -9,6 +9,17 @@ let currentWheelMode = "Hue"; // "Hue" | "Sat" | "Lum" for scroll wheel sub-edit
 
 const callbacks = {};
 
+function showErrorAlert(title, err) {
+  let msg = title + ": " + err.message;
+  if (err.line) {
+    msg += "\nLine: " + err.line;
+  }
+  if (err.stack) {
+    msg += "\n\nStack Trace:\n" + err.stack;
+  }
+  alert(msg);
+}
+
 // 1. Communication with Swift
 function callSwift(action, params = {}) {
   return new Promise((resolve, reject) => {
@@ -504,7 +515,7 @@ function setupKeyDetector(parentDiv) {
     const macCode = CODE_TO_MACOS_KEYCODE[e.code];
     let keyName = e.key;
     if (keyName === " ") keyName = "Space";
-    
+
     // Beautify modifier key names if they are the primary key
     if (e.code === "ControlLeft" || e.code === "ControlRight") keyName = "Control";
     else if (e.code === "ShiftLeft" || e.code === "ShiftRight") keyName = "Shift";
@@ -566,7 +577,7 @@ function getConfigItemMidiNotes(item) {
   const notes = new Set();
   if (!item) return notes;
   const keys = [
-    'press', 'release', 'plus', 'minus', 
+    'press', 'release', 'plus', 'minus',
     'cm_press', 'cm_release', 'cm_plus', 'cm_minus',
     'fn_press', 'fn_release', 'fn_plus', 'fn_minus',
     'cm_fn_press', 'cm_fn_release', 'cm_fn_plus', 'cm_fn_minus'
@@ -1329,7 +1340,7 @@ async function saveProfileToServer() {
       updateMappedVisuals();
     }
   } catch (err) {
-    alert("Error saving profile: " + err.message);
+    showErrorAlert("Error saving profile", err);
   }
 }
 
@@ -1343,7 +1354,7 @@ function setupEventListeners() {
   document.getElementById("profile-select").addEventListener("change", async (e) => {
     currentConfigName = e.target.value;
     await loadProfile(currentConfigName);
-    
+
     // Automatically set and apply the newly selected configuration if global override is false
     if (!globalOverride) {
       try {
@@ -1405,7 +1416,7 @@ function setupEventListeners() {
       }
     } catch (err) {
       if (err.message !== "Cancelled") {
-        alert("Error browsing app: " + err.message);
+        showErrorAlert("Error browsing app", err);
       }
     }
   });
@@ -1421,7 +1432,7 @@ function setupEventListeners() {
       activeConfigName = currentConfigName;
       await loadProfile(currentConfigName);
     } catch (err) {
-      alert("Error setting global override: " + err.message);
+      showErrorAlert("Error setting global override", err);
     }
   });
 
@@ -1470,7 +1481,7 @@ function setupEventListeners() {
       document.getElementById("profile-select").value = currentConfigName;
       await loadProfile(currentConfigName);
     } catch (err) {
-      alert("Error creating profile: " + err.message);
+      showErrorAlert("Error creating profile", err);
     }
   });
 
@@ -1500,7 +1511,7 @@ function setupEventListeners() {
       document.getElementById("profile-select").value = currentConfigName;
       await loadProfile(currentConfigName);
     } catch (err) {
-      alert("Error renaming profile: " + err.message);
+      showErrorAlert("Error renaming profile", err);
     }
   });
 
@@ -1526,7 +1537,7 @@ function setupEventListeners() {
         activeConfigName = "default.json";
         globalOverride = false;
       }
-      
+
       await callSwift("deleteConfig", { name: currentConfigName });
       await refreshProfilesList();
 
@@ -1534,7 +1545,7 @@ function setupEventListeners() {
       document.getElementById("profile-select").value = currentConfigName;
       await loadProfile(currentConfigName);
     } catch (err) {
-      alert("Error deleting profile: " + err.message);
+      showErrorAlert("Error deleting profile", err);
     }
   });
 
@@ -1684,7 +1695,7 @@ async function loadProfile(name) {
     // Highlight mapped controls
     updateMappedVisuals();
   } catch (err) {
-    alert("Error loading profile: " + err.message);
+    showErrorAlert("Error loading profile (" + name + ")", err);
   }
 }
 
@@ -1701,9 +1712,9 @@ function isControlMapped(svgId) {
     if (Array.isArray(ctrl.data)) {
       for (const w of ctrl.data) {
         if (hasAction(w.plus) || hasAction(w.minus) || hasAction(w.press) || hasAction(w.release) ||
-            hasAction(w.cm_plus) || hasAction(w.cm_minus) || hasAction(w.cm_press) || hasAction(w.cm_release) ||
-            hasAction(w.fn_plus) || hasAction(w.fn_minus) || hasAction(w.fn_press) || hasAction(w.fn_release) ||
-            hasAction(w.fn_cm_plus) || hasAction(w.fn_cm_minus) || hasAction(w.fn_cm_press) || hasAction(w.fn_cm_release)) {
+          hasAction(w.cm_plus) || hasAction(w.cm_minus) || hasAction(w.cm_press) || hasAction(w.cm_release) ||
+          hasAction(w.fn_plus) || hasAction(w.fn_minus) || hasAction(w.fn_press) || hasAction(w.fn_release) ||
+          hasAction(w.fn_cm_plus) || hasAction(w.fn_cm_minus) || hasAction(w.fn_cm_press) || hasAction(w.fn_cm_release)) {
           return true;
         }
       }
