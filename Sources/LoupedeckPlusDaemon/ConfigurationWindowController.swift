@@ -1,5 +1,6 @@
 import Cocoa
 import WebKit
+import os
 
 @MainActor
 public final class ConfigurationWindowController: NSObject, NSWindowDelegate, WKScriptMessageHandler, WKNavigationDelegate, WKUIDelegate {
@@ -55,7 +56,7 @@ public final class ConfigurationWindowController: NSObject, NSWindowDelegate, WK
         
         let webConfig = WKWebViewConfiguration()
         let userController = WKUserContentController()
-        userController.add(self, name: "loupedeck")
+        userController.add(WeakScriptMessageHandler(delegate: self), name: "loupedeck")
         webConfig.userContentController = userController
         
         // Disable cache during development to ensure updates are reflected
@@ -78,23 +79,23 @@ public final class ConfigurationWindowController: NSObject, NSWindowDelegate, WK
         // First try to locate inside the App Bundle Resources folder (production)
         if let htmlURL = Bundle.main.url(forResource: "index", withExtension: "html", subdirectory: "ui") {
             webView?.loadFileURL(htmlURL, allowingReadAccessTo: htmlURL.deletingLastPathComponent())
-            print("[Configurator] Loading UI from App Bundle: \(htmlURL.path)")
+            Logger.app.info("Loading UI from App Bundle: \(htmlURL.path, privacy: .public)")
         } else {
             // Fallback to local workspace files (developer fallback)
             let fm = FileManager.default
             let workspaceURL = URL(fileURLWithPath: fm.currentDirectoryPath).appendingPathComponent("resources/ui/index.html")
             if fm.fileExists(atPath: workspaceURL.path) {
                 webView?.loadFileURL(workspaceURL, allowingReadAccessTo: workspaceURL.deletingLastPathComponent())
-                print("[Configurator] Loading UI from local workspace: \(workspaceURL.path)")
+                Logger.app.info("Loading UI from local workspace: \(workspaceURL.path, privacy: .public)")
             } else {
-                print("[Configurator] Error: Could not locate UI resources!")
+                Logger.app.error("Error: Could not locate UI resources!")
             }
         }
     }
     
     public func windowWillClose(_ notification: Notification) {
         // Do not nil out references so the window state is retained and the app does not terminate or crash.
-        print("[Configurator] Configuration window closed (hidden).")
+        Logger.app.info("Configuration window closed (hidden).")
     }
     
     // MARK: - WKScriptMessageHandler
@@ -144,7 +145,7 @@ public final class ConfigurationWindowController: NSObject, NSWindowDelegate, WK
         case "getSVG":
             handleGetSVG(callbackID: callbackID)
         default:
-            print("[Configurator] Warning: Unknown action requested: \(action)")
+            Logger.app.warning("Warning: Unknown action requested: \(action, privacy: .public)")
         }
     }
     
@@ -171,95 +172,125 @@ public final class ConfigurationWindowController: NSObject, NSWindowDelegate, WK
     }
     
     private func handleGetConfigs(callbackID: String?) {
-        let fm = FileManager.default
-        let dir = Self.getConfigsDirectoryURL()
-        do {
-            let contents = try fm.contentsOfDirectory(at: dir, includingPropertiesForKeys: nil, options: [])
-            let jsonFiles = contents.filter { $0.pathExtension.lowercased() == "json" }
-                                    .map { $0.lastPathComponent }
-                                    .sorted()
-            sendResponse(callbackID: callbackID, data: jsonFiles)
-        } catch {
-            sendResponse(callbackID: callbackID, data: nil, error: error.localizedDescription)
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            guard let self = self else { return }
+            let fm = FileManager.default
+            let dir = Self.getConfigsDirectoryURL()
+            do {
+                let contents = try fm.contentsOfDirectory(at: dir, includingPropertiesForKeys: nil, options: [])
+                let jsonFiles = contents.filter { $0.pathExtension.lowercased() == "json" }
+                                        .map { $0.lastPathComponent }
+                                        .sorted()
+                DispatchQueue.main.async {
+                    self.sendResponse(callbackID: callbackID, data: jsonFiles)
+                }
+            } catch {
+                DispatchQueue.main.async {
+                    self.sendResponse(callbackID: callbackID, data: nil, error: error.localizedDescription)
+                }
+            }
         }
     }
     
     private func handleLoadConfig(name: String, callbackID: String?) {
-        let dir = Self.getConfigsDirectoryURL()
-        let fileURL = dir.appendingPathComponent(name)
-        do {
-            let content = try String(contentsOf: fileURL, encoding: .utf8)
-            sendResponse(callbackID: callbackID, data: content)
-        } catch {
-            sendResponse(callbackID: callbackID, data: nil, error: error.localizedDescription)
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            guard let self = self else { return }
+            let dir = Self.getConfigsDirectoryURL()
+            let fileURL = dir.appendingPathComponent(name)
+            do {
+                let content = try String(contentsOf: fileURL, encoding: .utf8)
+                DispatchQueue.main.async {
+                    self.sendResponse(callbackID: callbackID, data: content)
+                }
+            } catch {
+                DispatchQueue.main.async {
+                    self.sendResponse(callbackID: callbackID, data: nil, error: error.localizedDescription)
+                }
+            }
         }
     }
     
     private func handleSaveConfig(name: String, content: String, callbackID: String?) {
-        let dir = Self.getConfigsDirectoryURL()
-        let fileURL = dir.appendingPathComponent(name)
-        do {
-            // Validate JSON structure first
-            if let data = content.data(using: .utf8) {
-                _ = try JSONDecoder().decode(Config.self, from: data)
-            }
-            try content.write(to: fileURL, atomically: true, encoding: .utf8)
-            
-            // Notify AppDelegate to reload config
-            DispatchQueue.main.async {
-                if let appDelegate = NSApp.delegate as? AppDelegate {
-                    appDelegate.reloadCurrentConfig()
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            guard let self = self else { return }
+            let dir = Self.getConfigsDirectoryURL()
+            let fileURL = dir.appendingPathComponent(name)
+            do {
+                // Validate JSON structure first
+                if let data = content.data(using: .utf8) {
+                    _ = try JSONDecoder().decode(Config.self, from: data)
+                }
+                try content.write(to: fileURL, atomically: true, encoding: .utf8)
+                
+                // Notify AppDelegate to reload config
+                DispatchQueue.main.async {
+                    if let appDelegate = NSApp.delegate as? AppDelegate {
+                        appDelegate.reloadCurrentConfig()
+                    }
+                }
+                
+                DispatchQueue.main.async {
+                    self.sendResponse(callbackID: callbackID, data: "success")
+                }
+            } catch {
+                DispatchQueue.main.async {
+                    self.sendResponse(callbackID: callbackID, data: nil, error: "Save Failed: \(error.localizedDescription)")
                 }
             }
-            
-            sendResponse(callbackID: callbackID, data: "success")
-        } catch {
-            sendResponse(callbackID: callbackID, data: nil, error: "Save Failed: \(error.localizedDescription)")
         }
     }
     
     private func handleCreateConfig(name: String, callbackID: String?) {
-        var fileName = name
-        if !fileName.lowercased().hasSuffix(".json") {
-            fileName += ".json"
-        }
-        let dir = Self.getConfigsDirectoryURL()
-        let sourceURL = dir.appendingPathComponent("default.json")
-        let destURL = dir.appendingPathComponent(fileName)
-        
-        let fm = FileManager.default
-        if fm.fileExists(atPath: destURL.path) {
-            sendResponse(callbackID: callbackID, data: nil, error: "A configuration profile with this name already exists.")
-            return
-        }
-        
-        do {
-            if fm.fileExists(atPath: sourceURL.path) {
-                try fm.copyItem(at: sourceURL, to: destURL)
-                // Set targetBundleIdentifier to empty string
-                if let data = try? Data(contentsOf: destURL),
-                   var json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
-                    json["targetBundleIdentifier"] = ""
-                    let updatedData = try JSONSerialization.data(withJSONObject: json, options: [.prettyPrinted])
-                    try updatedData.write(to: destURL)
-                }
-            } else {
-                // Fallback template
-                let basic = """
-                {
-                  "targetBundleIdentifier": "",
-                  "hotkeys": true,
-                  "apple_script": true,
-                  "lightroom_socket": false,
-                  "knobs": [],
-                  "buttons": []
-                }
-                """
-                try basic.write(to: destURL, atomically: true, encoding: .utf8)
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            guard let self = self else { return }
+            var fileName = name
+            if !fileName.lowercased().hasSuffix(".json") {
+                fileName += ".json"
             }
-            sendResponse(callbackID: callbackID, data: fileName)
-        } catch {
-            sendResponse(callbackID: callbackID, data: nil, error: error.localizedDescription)
+            let dir = Self.getConfigsDirectoryURL()
+            let sourceURL = dir.appendingPathComponent("default.json")
+            let destURL = dir.appendingPathComponent(fileName)
+            
+            let fm = FileManager.default
+            if fm.fileExists(atPath: destURL.path) {
+                DispatchQueue.main.async {
+                    self.sendResponse(callbackID: callbackID, data: nil, error: "A configuration profile with this name already exists.")
+                }
+                return
+            }
+            
+            do {
+                if fm.fileExists(atPath: sourceURL.path) {
+                    try fm.copyItem(at: sourceURL, to: destURL)
+                    // Set targetBundleIdentifier to empty string
+                    if let data = try? Data(contentsOf: destURL),
+                       var json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
+                        json["targetBundleIdentifier"] = ""
+                        let updatedData = try JSONSerialization.data(withJSONObject: json, options: [.prettyPrinted])
+                        try updatedData.write(to: destURL)
+                    }
+                } else {
+                    // Fallback template
+                    let basic = """
+                    {
+                      "targetBundleIdentifier": "",
+                      "hotkeys": true,
+                      "apple_script": true,
+                      "lightroom_socket": false,
+                      "knobs": [],
+                      "buttons": []
+                    }
+                    """
+                    try basic.write(to: destURL, atomically: true, encoding: .utf8)
+                }
+                DispatchQueue.main.async {
+                    self.sendResponse(callbackID: callbackID, data: fileName)
+                }
+            } catch {
+                DispatchQueue.main.async {
+                    self.sendResponse(callbackID: callbackID, data: nil, error: error.localizedDescription)
+                }
+            }
         }
     }
     
@@ -269,46 +300,55 @@ public final class ConfigurationWindowController: NSObject, NSWindowDelegate, WK
             return
         }
         
-        let dir = Self.getConfigsDirectoryURL()
-        let fileURL = dir.appendingPathComponent(name)
-        let fm = FileManager.default
-        
-        guard fm.fileExists(atPath: fileURL.path) else {
-            sendResponse(callbackID: callbackID, data: nil, error: "Configuration file not found.")
-            return
-        }
-        
-        do {
-            try fm.removeItem(at: fileURL)
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            guard let self = self else { return }
+            let dir = Self.getConfigsDirectoryURL()
+            let fileURL = dir.appendingPathComponent(name)
+            let fm = FileManager.default
             
-            // Check if this was the active config
-            let configuratorURL = Self.getConfiguratorConfigURL()
-            var activeName = "default.json"
-            var json: [String: Any] = [:]
-            if let data = try? Data(contentsOf: configuratorURL),
-               let existing = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
-                json = existing
-                if let currentActive = existing["activeConfig"] as? String {
-                    activeName = currentActive
+            guard fm.fileExists(atPath: fileURL.path) else {
+                DispatchQueue.main.async {
+                    self.sendResponse(callbackID: callbackID, data: nil, error: "Configuration file not found.")
                 }
+                return
             }
             
-            if activeName == name {
-                json["activeConfig"] = "default.json"
-                let updatedData = try JSONSerialization.data(withJSONObject: json, options: [.prettyPrinted])
-                try updatedData.write(to: configuratorURL)
+            do {
+                try fm.removeItem(at: fileURL)
                 
-                // Notify AppDelegate to reload config
-                DispatchQueue.main.async {
-                    if let appDelegate = NSApp.delegate as? AppDelegate {
-                        appDelegate.reloadCurrentConfig()
+                // Check if this was the active config
+                let configuratorURL = Self.getConfiguratorConfigURL()
+                var activeName = "default.json"
+                var json: [String: Any] = [:]
+                if let data = try? Data(contentsOf: configuratorURL),
+                   let existing = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+                    json = existing
+                    if let currentActive = existing["activeConfig"] as? String {
+                        activeName = currentActive
                     }
                 }
+                
+                if activeName == name {
+                    json["activeConfig"] = "default.json"
+                    let updatedData = try JSONSerialization.data(withJSONObject: json, options: [.prettyPrinted])
+                    try updatedData.write(to: configuratorURL)
+                    
+                    // Notify AppDelegate to reload config
+                    DispatchQueue.main.async {
+                        if let appDelegate = NSApp.delegate as? AppDelegate {
+                            appDelegate.reloadCurrentConfig()
+                        }
+                    }
+                }
+                
+                DispatchQueue.main.async {
+                    self.sendResponse(callbackID: callbackID, data: "success")
+                }
+            } catch {
+                DispatchQueue.main.async {
+                    self.sendResponse(callbackID: callbackID, data: nil, error: "Delete Failed: \(error.localizedDescription)")
+                }
             }
-            
-            sendResponse(callbackID: callbackID, data: "success")
-        } catch {
-            sendResponse(callbackID: callbackID, data: nil, error: "Delete Failed: \(error.localizedDescription)")
         }
     }
     
@@ -328,52 +368,65 @@ public final class ConfigurationWindowController: NSObject, NSWindowDelegate, WK
             return
         }
         
-        let dir = Self.getConfigsDirectoryURL()
-        let sourceURL = dir.appendingPathComponent(oldName)
-        let destURL = dir.appendingPathComponent(formattedNewName)
+        let finalNewName = formattedNewName
         
-        let fm = FileManager.default
-        guard fm.fileExists(atPath: sourceURL.path) else {
-            sendResponse(callbackID: callbackID, data: nil, error: "Source configuration profile not found.")
-            return
-        }
-        
-        if fm.fileExists(atPath: destURL.path) {
-            sendResponse(callbackID: callbackID, data: nil, error: "A configuration profile with the new name already exists.")
-            return
-        }
-        
-        do {
-            try fm.moveItem(at: sourceURL, to: destURL)
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            guard let self = self else { return }
+            let dir = Self.getConfigsDirectoryURL()
+            let sourceURL = dir.appendingPathComponent(oldName)
+            let destURL = dir.appendingPathComponent(finalNewName)
             
-            // Check if this was the active config
-            let configuratorURL = Self.getConfiguratorConfigURL()
-            var activeName = "default.json"
-            var json: [String: Any] = [:]
-            if let data = try? Data(contentsOf: configuratorURL),
-               let existing = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
-                json = existing
-                if let currentActive = existing["activeConfig"] as? String {
-                    activeName = currentActive
+            let fm = FileManager.default
+            guard fm.fileExists(atPath: sourceURL.path) else {
+                DispatchQueue.main.async {
+                    self.sendResponse(callbackID: callbackID, data: nil, error: "Source configuration profile not found.")
                 }
+                return
             }
             
-            if activeName == oldName {
-                json["activeConfig"] = formattedNewName
-                let updatedData = try JSONSerialization.data(withJSONObject: json, options: [.prettyPrinted])
-                try updatedData.write(to: configuratorURL)
-                
-                // Notify AppDelegate to reload config
+            if fm.fileExists(atPath: destURL.path) {
                 DispatchQueue.main.async {
-                    if let appDelegate = NSApp.delegate as? AppDelegate {
-                        appDelegate.reloadCurrentConfig()
+                    self.sendResponse(callbackID: callbackID, data: nil, error: "A configuration profile with the new name already exists.")
+                }
+                return
+            }
+            
+            do {
+                try fm.moveItem(at: sourceURL, to: destURL)
+                
+                // Check if this was the active config
+                let configuratorURL = Self.getConfiguratorConfigURL()
+                var activeName = "default.json"
+                var json: [String: Any] = [:]
+                if let data = try? Data(contentsOf: configuratorURL),
+                   let existing = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+                    json = existing
+                    if let currentActive = existing["activeConfig"] as? String {
+                        activeName = currentActive
                     }
                 }
+                
+                if activeName == oldName {
+                    json["activeConfig"] = finalNewName
+                    let updatedData = try JSONSerialization.data(withJSONObject: json, options: [.prettyPrinted])
+                    try updatedData.write(to: configuratorURL)
+                    
+                    // Notify AppDelegate to reload config
+                    DispatchQueue.main.async {
+                        if let appDelegate = NSApp.delegate as? AppDelegate {
+                            appDelegate.reloadCurrentConfig()
+                        }
+                    }
+                }
+                
+                DispatchQueue.main.async {
+                    self.sendResponse(callbackID: callbackID, data: finalNewName)
+                }
+            } catch {
+                DispatchQueue.main.async {
+                    self.sendResponse(callbackID: callbackID, data: nil, error: "Rename Failed: \(error.localizedDescription)")
+                }
             }
-            
-            sendResponse(callbackID: callbackID, data: formattedNewName)
-        } catch {
-            sendResponse(callbackID: callbackID, data: nil, error: "Rename Failed: \(error.localizedDescription)")
         }
     }
     
@@ -468,31 +521,36 @@ public final class ConfigurationWindowController: NSObject, NSWindowDelegate, WK
     }
     
     private func handleGetScripts(callbackID: String?) {
-        let fm = FileManager.default
-        let scriptsDir = Self.getConfigDirectoryURL().appendingPathComponent("scripts")
-        var list = [String]()
-        
-        func scan(directory: URL) {
-            guard let contents = try? fm.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil, options: []) else { return }
-            for url in contents {
-                var isDir: ObjCBool = false
-                if fm.fileExists(atPath: url.path, isDirectory: &isDir) {
-                    if isDir.boolValue {
-                        scan(directory: url)
-                    } else {
-                        let ext = url.pathExtension.lowercased()
-                        if ext == "applescript" || ext == "scpt" || ext == "txt" {
-                            let name = url.deletingPathExtension().lastPathComponent
-                            list.append(name)
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            guard let self = self else { return }
+            let fm = FileManager.default
+            let scriptsDir = Self.getConfigDirectoryURL().appendingPathComponent("scripts")
+            var list = [String]()
+            
+            func scan(directory: URL) {
+                guard let contents = try? fm.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil, options: []) else { return }
+                for url in contents {
+                    var isDir: ObjCBool = false
+                    if fm.fileExists(atPath: url.path, isDirectory: &isDir) {
+                        if isDir.boolValue {
+                            scan(directory: url)
+                        } else {
+                            let ext = url.pathExtension.lowercased()
+                            if ext == "applescript" || ext == "txt" {
+                                let name = url.deletingPathExtension().lastPathComponent
+                                list.append(name)
+                            }
                         }
                     }
                 }
             }
+            
+            scan(directory: scriptsDir)
+            list.sort()
+            DispatchQueue.main.async {
+                self.sendResponse(callbackID: callbackID, data: list)
+            }
         }
-        
-        scan(directory: scriptsDir)
-        list.sort()
-        sendResponse(callbackID: callbackID, data: list)
     }
     
     // MARK: - Helper Methods
@@ -528,7 +586,7 @@ public final class ConfigurationWindowController: NSObject, NSWindowDelegate, WK
         DispatchQueue.main.async {
             self.webView?.evaluateJavaScript(jsCode, completionHandler: { _, err in
                 if let err = err {
-                    print("[Configurator] JS Evaluation error: \(err.localizedDescription)")
+                    Logger.app.error("JS Evaluation error: \(err.localizedDescription, privacy: .public)")
                 }
             })
         }
@@ -536,7 +594,7 @@ public final class ConfigurationWindowController: NSObject, NSWindowDelegate, WK
     
     // MARK: - Path Helpers
     
-    public static func getConfigDirectoryURL() -> URL {
+    nonisolated public static func getConfigDirectoryURL() -> URL {
         let fm = FileManager.default
         let homeDir = fm.homeDirectoryForCurrentUser
         let dir = homeDir.appendingPathComponent(".config/loupedeck-plus")
@@ -551,7 +609,7 @@ public final class ConfigurationWindowController: NSObject, NSWindowDelegate, WK
         return Config.appVersion
     }
     
-    public static func getConfigsDirectoryURL() -> URL {
+    nonisolated public static func getConfigsDirectoryURL() -> URL {
         let dir = getConfigDirectoryURL().appendingPathComponent("configs")
         let fm = FileManager.default
         if !fm.fileExists(atPath: dir.path) {
@@ -560,7 +618,7 @@ public final class ConfigurationWindowController: NSObject, NSWindowDelegate, WK
         return dir
     }
     
-    public static func getConfiguratorConfigURL() -> URL {
+    nonisolated public static func getConfiguratorConfigURL() -> URL {
         return getConfigDirectoryURL().appendingPathComponent("configurator.json")
     }
     
@@ -572,7 +630,7 @@ public final class ConfigurationWindowController: NSObject, NSWindowDelegate, WK
         let destURL = userConfigsDir.appendingPathComponent("default.json")
         
         if !fm.fileExists(atPath: destURL.path) {
-            print("[Config] Seeding default configs to \(userConfigsDir.path)...")
+            Logger.config.info("Seeding default configs to \(userConfigsDir.path, privacy: .public)...")
             
             // Try to find the configs directory in bundle resources
             let sourceConfigsURL: URL?
@@ -715,9 +773,9 @@ public final class ConfigurationWindowController: NSObject, NSWindowDelegate, WK
             if let updatedData = try? JSONSerialization.data(withJSONObject: json, options: [.prettyPrinted]) {
                 do {
                     try updatedData.write(to: fileURL)
-                    print("[Migration] Successfully migrated Fn button mapping in profile: \(fileURL.lastPathComponent)")
+                    Logger.config.info("Successfully migrated Fn button mapping in profile: \(fileURL.lastPathComponent, privacy: .public)")
                 } catch {
-                    print("[Migration] Error writing profile \(fileURL.lastPathComponent): \(error.localizedDescription)")
+                    Logger.config.error("Error writing profile \(fileURL.lastPathComponent, privacy: .public): \(error.localizedDescription, privacy: .public)")
                 }
             }
         }
@@ -785,5 +843,18 @@ extension String {
                    .replacingOccurrences(of: "\"", with: "\\\"")
                    .replacingOccurrences(of: "\n", with: "\\n")
                    .replacingOccurrences(of: "\r", with: "\\r")
+    }
+}
+
+private class WeakScriptMessageHandler: NSObject, WKScriptMessageHandler {
+    weak var delegate: WKScriptMessageHandler?
+    
+    init(delegate: WKScriptMessageHandler) {
+        self.delegate = delegate
+        super.init()
+    }
+    
+    func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+        delegate?.userContentController(userContentController, didReceive: message)
     }
 }

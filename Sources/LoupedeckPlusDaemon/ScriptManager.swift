@@ -1,9 +1,17 @@
 import Foundation
+import os
 
 public final class ScriptManager: @unchecked Sendable {
+    private struct ScriptCacheKey: Hashable {
+        let actionName: String
+        let activeAppPath: String?
+        let defaultValue: Double?
+    }
+
     var scripts = [String: String]()
     private let scriptsDirectory: String
     private var targetBundleIdentifier: String
+    private var compiledScripts = [ScriptCacheKey: NSAppleScript]()
     private var lock = os_unfair_lock()
     
     public init(targetBundleIdentifier: String, scriptsDirectory: String = "scripts") {
@@ -12,16 +20,20 @@ public final class ScriptManager: @unchecked Sendable {
         loadScripts()
     }
     
-    /// Loads all AppleScript files (.applescript, .scpt) recursively from the scripts folder.
+    /// Loads all AppleScript files (.applescript) recursively from the scripts folder.
     public func loadScripts() {
+        os_unfair_lock_lock(&lock)
+        compiledScripts.removeAll()
+        os_unfair_lock_unlock(&lock)
+        
         let fm = FileManager.default
         let rootURL = URL(fileURLWithPath: scriptsDirectory)
         guard fm.fileExists(atPath: scriptsDirectory) else {
-            print("[ScriptManager] Info: '\(scriptsDirectory)' directory not found. Creating it...")
+            Logger.script.info("'\(self.scriptsDirectory, privacy: .public)' directory not found. Creating it...")
             do {
                 try fm.createDirectory(atPath: scriptsDirectory, withIntermediateDirectories: true, attributes: nil)
             } catch {
-                print("[ScriptManager] Error creating 'scripts' directory: \(error.localizedDescription)")
+                Logger.script.error("Error creating 'scripts' directory: \(error.localizedDescription, privacy: .public)")
             }
             return
         }
@@ -39,26 +51,69 @@ public final class ScriptManager: @unchecked Sendable {
                             let nameWithoutExtension = itemURL.deletingPathExtension().lastPathComponent
                             let ext = itemURL.pathExtension.lowercased()
                             
-                            if ext == "applescript" || ext == "scpt" || ext == "txt" {
+                            if ext == "applescript" || ext == "txt" {
                                 let content = try String(contentsOf: itemURL, encoding: .utf8)
                                 scripts[nameWithoutExtension] = content
-                                print("[ScriptManager] Loaded AppleScript: '\(nameWithoutExtension)' (from: \(itemURL.path.replacingOccurrences(of: scriptsDirectory + "/", with: "")))")
+                                let relPath = itemURL.path.replacingOccurrences(of: scriptsDirectory + "/", with: "")
+                                Logger.script.info("Loaded AppleScript: '\(nameWithoutExtension, privacy: .public)' (from: \(relPath, privacy: .public))")
                             }
                         }
                     }
                 }
             } catch {
-                print("[ScriptManager] Error scanning folder \(url.path): \(error.localizedDescription)")
+                Logger.script.error("Error scanning folder \(url.path, privacy: .public): \(error.localizedDescription, privacy: .public)")
             }
         }
         
         scanDirectory(url: rootURL)
     }
     
+    private func redirectCaptureOneTell(in source: String, activeAppPath: String?) -> String {
+        let pattern = #"tell\s+application\s+"Capture\s+One[^"]*""#
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]) else {
+            return source
+        }
+        
+        let range = NSRange(source.startIndex..<source.endIndex, in: source)
+        let replacement: String
+        if let path = activeAppPath {
+            replacement = "tell application \"\(path)\""
+        } else {
+            os_unfair_lock_lock(&lock)
+            let targetID = targetBundleIdentifier
+            os_unfair_lock_unlock(&lock)
+            replacement = "tell application id \"\(targetID)\""
+        }
+        
+        let escapedReplacement = NSRegularExpression.escapedTemplate(for: replacement)
+        return regex.stringByReplacingMatches(in: source, options: [], range: range, withTemplate: escapedReplacement)
+    }
+
+    private func executeCompiledScript(_ appleScript: NSAppleScript, actionName: String) {
+        var errorInfo: NSDictionary?
+        appleScript.executeAndReturnError(&errorInfo)
+        
+        if let error = errorInfo {
+            Logger.script.error("AppleScript execution error ('\(actionName, privacy: .public)'): \(String(describing: error), privacy: .public)")
+        } else {
+            Logger.script.info("Successfully executed AppleScript: '\(actionName, privacy: .public)'")
+        }
+    }
+
     /// Executes a script by name and optionally replaces the {{DEFAULT}} placeholder.
     public func execute(actionName: String, defaultValue: Double?, activeAppPath: String? = nil) {
+        let key = ScriptCacheKey(actionName: actionName, activeAppPath: activeAppPath, defaultValue: defaultValue)
+        
+        os_unfair_lock_lock(&lock)
+        if let cachedScript = compiledScripts[key] {
+            os_unfair_lock_unlock(&lock)
+            executeCompiledScript(cachedScript, actionName: actionName)
+            return
+        }
+        os_unfair_lock_unlock(&lock)
+        
         guard var scriptSource = scripts[actionName] else {
-            print("[ScriptManager] Error: Script '\(actionName)' is not loaded.")
+            Logger.script.error("Error: Script '\(actionName, privacy: .public)' is not loaded.")
             return
         }
         
@@ -69,75 +124,51 @@ public final class ScriptManager: @unchecked Sendable {
             scriptSource = scriptSource.replacingOccurrences(of: "{{DEFAULT}}", with: "0.0")
         }
         
-        // Dynamically redirect tell application "Capture One" to use target bundle identifier or specific app path
-        if let path = activeAppPath {
-            scriptSource = scriptSource.replacingOccurrences(
-                of: "tell application \"Capture One\"",
-                with: "tell application \"\(path)\""
-            )
-        } else {
-            os_unfair_lock_lock(&lock)
-            let targetID = targetBundleIdentifier
-            os_unfair_lock_unlock(&lock)
-            scriptSource = scriptSource.replacingOccurrences(
-                of: "tell application \"Capture One\"",
-                with: "tell application id \"\(targetID)\""
-            )
-        }
+        scriptSource = redirectCaptureOneTell(in: scriptSource, activeAppPath: activeAppPath)
         
         // Compile the script in memory
         guard let appleScript = NSAppleScript(source: scriptSource) else {
-            print("[ScriptManager] Error: Failed to compile AppleScript '\(actionName)'")
+            Logger.script.error("Error: Failed to compile AppleScript '\(actionName, privacy: .public)'")
             return
         }
         
-        var errorInfo: NSDictionary?
-        appleScript.executeAndReturnError(&errorInfo)
+        os_unfair_lock_lock(&lock)
+        compiledScripts[key] = appleScript
+        os_unfair_lock_unlock(&lock)
         
-        if let error = errorInfo {
-            print("[ScriptManager] AppleScript execution error ('\(actionName)'): \(error)")
-        } else {
-            print("[ScriptManager] Successfully executed AppleScript: '\(actionName)'")
-        }
+        executeCompiledScript(appleScript, actionName: actionName)
     }
     
     public func executeCustomScript(source: String, actionName: String, activeAppPath: String? = nil) {
-        var scriptSource = source
+        let key = ScriptCacheKey(actionName: "custom_\(actionName)", activeAppPath: activeAppPath, defaultValue: nil)
         
-        if let path = activeAppPath {
-            scriptSource = scriptSource.replacingOccurrences(
-                of: "tell application \"Capture One\"",
-                with: "tell application \"\(path)\""
-            )
-        } else {
-            os_unfair_lock_lock(&lock)
-            let targetID = targetBundleIdentifier
+        os_unfair_lock_lock(&lock)
+        if let cachedScript = compiledScripts[key] {
             os_unfair_lock_unlock(&lock)
-            scriptSource = scriptSource.replacingOccurrences(
-                of: "tell application \"Capture One\"",
-                with: "tell application id \"\(targetID)\""
-            )
+            executeCompiledScript(cachedScript, actionName: actionName)
+            return
         }
+        os_unfair_lock_unlock(&lock)
+        
+        let scriptSource = redirectCaptureOneTell(in: source, activeAppPath: activeAppPath)
         
         guard let appleScript = NSAppleScript(source: scriptSource) else {
-            print("[ScriptManager] Error: Failed to compile custom AppleScript '\(actionName)'")
+            Logger.script.error("Error: Failed to compile custom AppleScript '\(actionName, privacy: .public)'")
             return
         }
         
-        var errorInfo: NSDictionary?
-        appleScript.executeAndReturnError(&errorInfo)
+        os_unfair_lock_lock(&lock)
+        compiledScripts[key] = appleScript
+        os_unfair_lock_unlock(&lock)
         
-        if let error = errorInfo {
-            print("[ScriptManager] AppleScript execution error ('\(actionName)'): \(error)")
-        } else {
-            print("[ScriptManager] Successfully executed custom AppleScript: '\(actionName)'")
-        }
+        executeCompiledScript(appleScript, actionName: actionName)
     }
     
     public func updateTargetBundleIdentifier(_ newBundleID: String) {
         os_unfair_lock_lock(&lock)
         self.targetBundleIdentifier = newBundleID
+        self.compiledScripts.removeAll()
         os_unfair_lock_unlock(&lock)
-        print("[ScriptManager] Target bundle identifier updated to: \(newBundleID)")
+        Logger.script.info("Target bundle identifier updated to: \(newBundleID, privacy: .public)")
     }
 }

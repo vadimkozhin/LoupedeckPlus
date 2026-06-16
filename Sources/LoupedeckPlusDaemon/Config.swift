@@ -26,6 +26,7 @@ public struct KeyAction: Codable {
     public let action: String?
     public let relativeMode: RelativeMode?
     public let socketCommand: String?
+    public let parsedMatchers: [ByteMatcher]?
     
     enum CodingKeys: String, CodingKey {
         case midiMatch
@@ -36,8 +37,45 @@ public struct KeyAction: Codable {
         case socketCommand
     }
     
-    /// Parses the midiMatch string (e.g. "B0 21 01") into an array of ByteMatchers.
-    public var parsedMatchers: [ByteMatcher]? {
+    public init(
+        midiMatch: String,
+        keyCode: UInt16?,
+        modifiers: [ModifierKey]?,
+        action: String?,
+        relativeMode: RelativeMode?,
+        socketCommand: String?
+    ) {
+        self.midiMatch = midiMatch
+        self.keyCode = keyCode
+        self.modifiers = modifiers
+        self.action = action
+        self.relativeMode = relativeMode
+        self.socketCommand = socketCommand
+        self.parsedMatchers = Self.parseMidiMatch(midiMatch)
+    }
+    
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.midiMatch = try container.decode(String.self, forKey: .midiMatch)
+        self.keyCode = try container.decodeIfPresent(UInt16.self, forKey: .keyCode)
+        self.modifiers = try container.decodeIfPresent([ModifierKey].self, forKey: .modifiers)
+        self.action = try container.decodeIfPresent(String.self, forKey: .action)
+        self.relativeMode = try container.decodeIfPresent(RelativeMode.self, forKey: .relativeMode)
+        self.socketCommand = try container.decodeIfPresent(String.self, forKey: .socketCommand)
+        self.parsedMatchers = Self.parseMidiMatch(self.midiMatch)
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(midiMatch, forKey: .midiMatch)
+        try container.encodeIfPresent(keyCode, forKey: .keyCode)
+        try container.encodeIfPresent(modifiers, forKey: .modifiers)
+        try container.encodeIfPresent(action, forKey: .action)
+        try container.encodeIfPresent(relativeMode, forKey: .relativeMode)
+        try container.encodeIfPresent(socketCommand, forKey: .socketCommand)
+    }
+    
+    private static func parseMidiMatch(_ midiMatch: String) -> [ByteMatcher]? {
         let components = midiMatch.lowercased()
             .split { $0.isWhitespace || $0 == ":" || $0 == "-" }
             .map { String($0) }
@@ -51,7 +89,7 @@ public struct KeyAction: Codable {
             } else if let byte = UInt8(comp, radix: 16) {
                 matchers.append(.exact(byte))
             } else {
-                return nil
+                matchers.append(.wildcard)
             }
         }
         
@@ -162,7 +200,7 @@ public struct ButtonMapping: Codable {
 
 public struct Config: Codable {
     // Application version tag - update this value when releasing new versions
-    public static let appVersion = "0.5.3"
+    public static let appVersion = "0.5.4"
 
     public let targetBundleIdentifier: String
     public let hotkeys: Bool?

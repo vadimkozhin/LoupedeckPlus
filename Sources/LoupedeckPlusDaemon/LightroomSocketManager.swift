@@ -1,6 +1,7 @@
 import Foundation
 import Network
 import AppKit
+import os
 
 public final class LightroomSocketManager: @unchecked Sendable {
     public static let shared = LightroomSocketManager()
@@ -39,7 +40,7 @@ public final class LightroomSocketManager: @unchecked Sendable {
         
         if !isLrRunning {
             if receiverConnection != nil || senderConnection != nil {
-                print("[LightroomSocket] Lightroom is not running. Disconnecting...")
+                Logger.socket.info("Lightroom is not running. Disconnecting...")
                 disconnectAll()
             }
             return
@@ -64,13 +65,13 @@ public final class LightroomSocketManager: @unchecked Sendable {
         // Handle Receiver Port (Port 1)
         if let p1 = p1 {
             if receiverConnection == nil || receiverPort != p1 {
-                print("[LightroomSocket] Connecting/Reconnecting to Receiver (Port 1): \(p1)")
+                Logger.socket.info("Connecting/Reconnecting to Receiver (Port 1): \(p1, privacy: .public)")
                 disconnectReceiver()
                 connectReceiver(port: p1)
             }
         } else {
             if receiverConnection != nil {
-                print("[LightroomSocket] Receiver port disappeared. Disconnecting...")
+                Logger.socket.info("Receiver port disappeared. Disconnecting...")
                 disconnectReceiver()
             }
         }
@@ -78,13 +79,13 @@ public final class LightroomSocketManager: @unchecked Sendable {
         // Handle Sender Port (Port 2)
         if let p2 = p2 {
             if senderConnection == nil || senderPort != p2 {
-                print("[LightroomSocket] Connecting/Reconnecting to Sender (Port 2): \(p2)")
+                Logger.socket.info("Connecting/Reconnecting to Sender (Port 2): \(p2, privacy: .public)")
                 disconnectSender()
                 connectSender(port: p2)
             }
         } else {
             if senderConnection != nil {
-                print("[LightroomSocket] Sender port disappeared. Disconnecting...")
+                Logger.socket.info("Sender port disappeared. Disconnecting...")
                 disconnectSender()
             }
         }
@@ -103,13 +104,13 @@ public final class LightroomSocketManager: @unchecked Sendable {
             self.queue.async {
                 switch state {
                 case .ready:
-                    print("[LightroomSocket] Connected to Lightroom Receiver (Port 1) on port \(port)")
+                    Logger.socket.info("Connected to Lightroom Receiver (Port 1) on port \(port, privacy: .public)")
                     self.sendHandshake()
                 case .failed(let error):
-                    print("[LightroomSocket] Receiver connection failed: \(error)")
+                    Logger.socket.error("Receiver connection failed: \(error, privacy: .public)")
                     self.disconnectReceiver()
                 case .cancelled:
-                    print("[LightroomSocket] Receiver connection cancelled")
+                    Logger.socket.info("Receiver connection cancelled")
                 default:
                     break
                 }
@@ -131,13 +132,13 @@ public final class LightroomSocketManager: @unchecked Sendable {
             self.queue.async {
                 switch state {
                 case .ready:
-                    print("[LightroomSocket] Connected to Lightroom Sender (Port 2) on port \(port)")
+                    Logger.socket.info("Connected to Lightroom Sender (Port 2) on port \(port, privacy: .public)")
                     self.receiveEvents()
                 case .failed(let error):
-                    print("[LightroomSocket] Sender connection failed: \(error)")
+                    Logger.socket.error("Sender connection failed: \(error, privacy: .public)")
                     self.disconnectSender()
                 case .cancelled:
-                    print("[LightroomSocket] Sender connection cancelled")
+                    Logger.socket.info("Sender connection cancelled")
                 default:
                     break
                 }
@@ -157,7 +158,7 @@ public final class LightroomSocketManager: @unchecked Sendable {
     public func sendMessage(action: String, params: String) {
         queue.async {
             guard let conn = self.receiverConnection else {
-                print("[LightroomSocket] Cannot send command, not connected to Lightroom.")
+                Logger.socket.warning("Cannot send command, not connected to Lightroom.")
                 return
             }
             let messageId = Int.random(in: 1000...9999)
@@ -166,9 +167,9 @@ public final class LightroomSocketManager: @unchecked Sendable {
             
             conn.send(content: data, completion: .contentProcessed({ error in
                 if let error = error {
-                    print("[LightroomSocket] Failed to send command \(action): \(error)")
+                    Logger.socket.error("Failed to send command \(action, privacy: .public): \(error, privacy: .public)")
                 } else {
-                    print("[LightroomSocket] Sent command: \(action) with params: \(params)")
+                    Logger.socket.info("Sent command: \(action, privacy: .public) with params: \(params, privacy: .public)")
                 }
             }))
         }
@@ -179,13 +180,13 @@ public final class LightroomSocketManager: @unchecked Sendable {
         conn.receive(minimumIncompleteLength: 1, maximumLength: 65536) { [weak self] data, context, isComplete, error in
             if let data = data, !data.isEmpty {
                 if let msg = String(data: data, encoding: .utf8) {
-                    print("[LightroomSocket] Event received from Lightroom: \(msg.trimmingCharacters(in: .whitespacesAndNewlines))")
+                    Logger.socket.info("Event received from Lightroom: \(msg.trimmingCharacters(in: .whitespacesAndNewlines), privacy: .public)")
                 }
             }
             if error == nil && !isComplete {
                 self?.receiveEvents()
             } else if let error = error {
-                print("[LightroomSocket] Sender connection error while receiving: \(error)")
+                Logger.socket.error("Sender connection error while receiving: \(error, privacy: .public)")
                 self?.disconnectSender()
             }
         }

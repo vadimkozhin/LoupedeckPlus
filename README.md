@@ -7,7 +7,7 @@ A MacOs app to replace the official Loupedeck software.
 
 * GUI configuration editor
 * Live preview of control assignments
-* Allow to bind Loupedeck controls to keyboard shortcuts and AppleScripts
+* Allow to bind Loupedeck controls to keyboard shortcuts and AppleScripts (plain text only)
 * Support for custom profiles
 * Adobe Lightroom Classic plugin with socket client
 * Support for CaptureOne custom keyboard shortcuts (no plugin used) 
@@ -95,6 +95,15 @@ Run the build script and see available options:
 ```
 
 ## Version History
+0.5.4
+- Ignore .scpt (compiled apple scripts) from loading
+- Remove "Capture One 21" from example custom scripts
+- Performance optimizations
+- Logging. Now you can follow the daemon log by:
+`log stream --level info --predicate 'subsystem == "com.loupedeck.plus"'`
+or:
+`log show --predicate 'subsystem == "com.loupedeck.plus"' --info --last 1h`
+
 0.5.3 - extended error messages (issue #2)
 
 0.5.2

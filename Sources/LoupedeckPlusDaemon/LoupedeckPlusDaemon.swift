@@ -1,6 +1,7 @@
 import Cocoa
 import Foundation
 import CoreGraphics
+import os
 
 @MainActor
 class AppDelegate: NSObject, NSApplicationDelegate {
@@ -9,6 +10,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var workspaceMonitor: WorkspaceMonitor?
     private var eventSynthesizer: EventSynthesizer?
     private var scriptManager: ScriptManager?
+    
+    private var profileBundleIDMap = [String: String]()
+    private var pendingAppSwitchWorkItem: DispatchWorkItem?
     
     private var currentRunningConfigName: String?
     private var configuratorActiveConfigName: String = "default.json"
@@ -45,7 +49,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private func registerLaunchAgent() {
         let bundleURL = Bundle.main.bundleURL
         guard bundleURL.pathExtension.lowercased() == "app" else {
-            print("[App] Running as standalone command-line executable. Skipping launch agent registration.")
+            Logger.app.info("Running as standalone command-line executable. Skipping launch agent registration.")
             return
         }
         
@@ -91,12 +95,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             
             if needsWrite {
                 try plistContent.write(to: plistURL, atomically: true, encoding: .utf8)
-                print("[App] Registered launch agent at \(plistURL.path)")
+                Logger.app.info("Registered launch agent at \(plistURL.path, privacy: .public)")
             } else {
-                print("[App] Launch agent is already up-to-date.")
+                Logger.app.info("Launch agent is already up-to-date.")
             }
         } catch {
-            print("[App] Failed to register launch agent: \(error.localizedDescription)")
+            Logger.app.error("Failed to register launch agent: \(error.localizedDescription, privacy: .public)")
         }
     }
     
@@ -116,7 +120,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         // Resolve source paths from App Bundle Resources
         guard let resourceURL = Bundle.main.resourceURL else {
-            print("[App] Resources directory not found. Skipping plugin installation.")
+            Logger.app.info("Resources directory not found. Skipping plugin installation.")
             return
         }
         
@@ -125,42 +129,42 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         // Install Lightroom plugin if it does not exist
         if !fm.fileExists(atPath: lrPluginDest.path) {
-            print("[App] Installing Lightroom Plugin to \(lrPluginDest.path)...")
+            Logger.app.info("Installing Lightroom Plugin to \(lrPluginDest.path, privacy: .public)...")
             do {
                 if !fm.fileExists(atPath: lrModulesDir.path) {
                     try fm.createDirectory(at: lrModulesDir, withIntermediateDirectories: true, attributes: nil)
                 }
                 if fm.fileExists(atPath: lrPluginSource.path) {
                     try fm.copyItem(at: lrPluginSource, to: lrPluginDest)
-                    print("[App] Lightroom Plugin installed successfully.")
+                    Logger.app.info("Lightroom Plugin installed successfully.")
                 } else {
-                    print("[App] Error: Lightroom Plugin source not found in bundle resources: \(lrPluginSource.path)")
+                    Logger.app.error("Error: Lightroom Plugin source not found in bundle resources: \(lrPluginSource.path, privacy: .public)")
                 }
             } catch {
-                print("[App] Failed to copy Lightroom plugin: \(error.localizedDescription)")
+                Logger.app.error("Failed to copy Lightroom plugin: \(error.localizedDescription, privacy: .public)")
             }
         } else {
-            print("[App] Lightroom Plugin is already present.")
+            Logger.app.info("Lightroom Plugin is already present.")
         }
         
         // Install Capture One shortcut plist if it does not exist
         if !fm.fileExists(atPath: c1ShortcutDest.path) {
-            print("[App] Installing Capture One Shortcut plist to \(c1ShortcutDest.path)...")
+            Logger.app.info("Installing Capture One Shortcut plist to \(c1ShortcutDest.path, privacy: .public)...")
             do {
                 if !fm.fileExists(atPath: c1ShortcutsDir.path) {
                     try fm.createDirectory(at: c1ShortcutsDir, withIntermediateDirectories: true, attributes: nil)
                 }
                 if fm.fileExists(atPath: c1ShortcutSource.path) {
                     try fm.copyItem(at: c1ShortcutSource, to: c1ShortcutDest)
-                    print("[App] Capture One Shortcut plist installed successfully.")
+                    Logger.app.info("Capture One Shortcut plist installed successfully.")
                 } else {
-                    print("[App] Error: Capture One Shortcut source not found in bundle resources: \(c1ShortcutSource.path)")
+                    Logger.app.error("Error: Capture One Shortcut source not found in bundle resources: \(c1ShortcutSource.path, privacy: .public)")
                 }
             } catch {
-                print("[App] Failed to copy Capture One shortcut plist: \(error.localizedDescription)")
+                Logger.app.error("Failed to copy Capture One shortcut plist: \(error.localizedDescription, privacy: .public)")
             }
         } else {
-            print("[App] Capture One Shortcut plist is already present.")
+            Logger.app.info("Capture One Shortcut plist is already present.")
         }
     }
     
@@ -231,13 +235,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     @objc private func exitApp() {
-        print("[App] Exiting application...")
+        Logger.app.info("Exiting application...")
         NSApplication.shared.terminate(nil)
     }
     
     private func checkAccessibilityPermissions() {
         if !EventSynthesizer.hasAccessibilityPermissions() {
-            print("[Warning] Daemon is missing macOS Accessibility Permissions!")
+            Logger.app.warning("Daemon is missing macOS Accessibility Permissions!")
             
             // Show standard modal alert
             let alert = NSAlert()
@@ -256,7 +260,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 }
             }
         } else {
-            print("[Permissions] Accessibility permissions are verified.")
+            Logger.app.info("Accessibility permissions are verified.")
         }
     }
     
@@ -268,7 +272,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 let config = try Config.load(from: configPath)
                 return (config, URL(fileURLWithPath: configPath).lastPathComponent, false)
             } catch {
-                print("[Config] Error loading argument config: \(error.localizedDescription)")
+                Logger.config.error("Error loading argument config: \(error.localizedDescription, privacy: .public)")
             }
         }
         
@@ -294,7 +298,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         var configURL = configsDir.appendingPathComponent(activeConfigName)
         
         if !fm.fileExists(atPath: configURL.path) {
-            print("[Config] Active config \(activeConfigName) not found, falling back to default.json")
+            Logger.config.warning("Active config \(activeConfigName, privacy: .public) not found, falling back to default.json")
             activeConfigName = "default.json"
             configURL = configsDir.appendingPathComponent(activeConfigName)
         }
@@ -303,7 +307,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             let config = try Config.load(from: configURL.path)
             return (config, activeConfigName, globalOverride)
         } catch {
-            print("[Config] Error loading active config: \(error.localizedDescription)")
+            Logger.config.error("Error loading active config: \(error.localizedDescription, privacy: .public)")
             if let bundlePath = Bundle.main.path(forResource: "default", ofType: "json", inDirectory: "configs") {
                 if let config = try? Config.load(from: bundlePath) {
                     return (config, "default.json", globalOverride)
@@ -313,19 +317,40 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
     
+    private func rebuildProfileRegistry() {
+        let configsDir = ConfigurationWindowController.getConfigsDirectoryURL()
+        let fm = FileManager.default
+        guard let files = try? fm.contentsOfDirectory(at: configsDir, includingPropertiesForKeys: nil, options: []) else { return }
+        
+        var mapping = [String: String]()
+        for fileURL in files {
+            if fileURL.pathExtension.lowercased() == "json" && fileURL.lastPathComponent.lowercased() != "default.json" {
+                if let config = try? Config.load(from: fileURL.path) {
+                    let bundleID = config.targetBundleIdentifier.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+                    if !bundleID.isEmpty {
+                        mapping[bundleID] = fileURL.lastPathComponent
+                    }
+                }
+            }
+        }
+        self.profileBundleIDMap = mapping
+        Logger.app.info("Rebuilt profile registry map: \(self.profileBundleIDMap, privacy: .public)")
+    }
+    
     public func reloadCurrentConfig() {
-        print("[App] Reloading active configuration...")
+        Logger.app.info("Reloading active configuration...")
         
         let (config, activeName, globalOverride) = loadConfig()
         self.configuratorActiveConfigName = activeName
         self.configuratorGlobalOverride = globalOverride
         self.currentRunningConfigName = activeName
         
+        rebuildProfileRegistry()
         applyConfig(config: config, name: activeName, globalOverride: globalOverride)
     }
     
     private func applyConfig(config: Config, name: String, globalOverride: Bool) {
-        print("[Config] Applying configuration: \(name). Target bundle ID: \(config.targetBundleIdentifier). Global Override: \(globalOverride)")
+        Logger.config.info("Applying configuration: \(name, privacy: .public). Target bundle ID: \(config.targetBundleIdentifier, privacy: .public). Global Override: \(globalOverride)")
         
         // 1. Resolve scripts directory
         let userScriptsURL = ConfigurationWindowController.getConfigDirectoryURL().appendingPathComponent("scripts")
@@ -348,29 +373,29 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         if let listener = self.midiListener,
            let monitor = self.workspaceMonitor,
            let manager = self.scriptManager {
-            print("[Config] Reusing existing MIDIListener, WorkspaceMonitor, and ScriptManager. Updating config dynamically...")
+            Logger.config.info("Reusing existing MIDIListener, WorkspaceMonitor, and ScriptManager. Updating config dynamically...")
             manager.updateTargetBundleIdentifier(config.targetBundleIdentifier)
             monitor.updateTargetBundleIdentifier(config.targetBundleIdentifier)
             listener.updateConfig(config, globalOverride: globalOverride)
-            print("[App] Configuration dynamic update complete.")
+            Logger.app.info("Configuration dynamic update complete.")
             return
         }
         
         // 2. Dispose old MIDI listener to release resources
         if midiListener != nil {
-            print("[MIDI] Disposing old MIDI listener...")
+            Logger.midi.info("Disposing old MIDI listener...")
             midiListener = nil
         }
         
         // 3. Re-create components (fallback / initial creation)
-        print("[Script] Initializing AppleScript manager with directory: \(scriptsDirectoryPath)")
+        Logger.script.info("Initializing AppleScript manager with directory: \(scriptsDirectoryPath, privacy: .public)")
         let scriptManager = ScriptManager(targetBundleIdentifier: config.targetBundleIdentifier, scriptsDirectory: scriptsDirectoryPath)
         self.scriptManager = scriptManager
         
         workspaceMonitor = WorkspaceMonitor(targetBundleIdentifier: config.targetBundleIdentifier)
         eventSynthesizer = EventSynthesizer()
         
-        print("[MIDI] Initializing CoreMIDI listener...")
+        Logger.midi.info("Initializing CoreMIDI listener...")
         let listener = MIDIListener(
             config: config,
             workspaceMonitor: workspaceMonitor!,
@@ -380,7 +405,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         listener.globalOverride = globalOverride
         self.midiListener = listener
         
-        print("[App] Configuration reload/apply complete.")
+        Logger.app.info("Configuration reload/apply complete.")
     }
     
     @objc private func handleWorkspaceAppActivation(_ notification: Notification) {
@@ -411,7 +436,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // If globalOverride is true, and the configurator window is NOT focused, lock to the override activeConfig Name
         if globalOverride && !isConfiguratorActive {
             if self.currentRunningConfigName != activeConfigName {
-                print("[App] Global override active. Locking to \(activeConfigName)")
+                Logger.app.info("Global override active. Locking to \(activeConfigName, privacy: .public)")
                 self.currentRunningConfigName = activeConfigName
                 let configsDir = ConfigurationWindowController.getConfigsDirectoryURL()
                 let configURL = configsDir.appendingPathComponent(activeConfigName)
@@ -430,46 +455,41 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             finalConfigName = activeConfigName
             isOverrideRunning = true // Enable global override so the Loupedeck keys are responsive inside configurator
         } else {
-            // Intercept active app and dynamically match it with configs
-            let configsDir = ConfigurationWindowController.getConfigsDirectoryURL()
-            let fm = FileManager.default
-            guard let files = try? fm.contentsOfDirectory(at: configsDir, includingPropertiesForKeys: nil, options: []) else { return }
-            
-            var targetConfigName: String? = nil
-            for fileURL in files {
-                if fileURL.pathExtension.lowercased() == "json" && fileURL.lastPathComponent.lowercased() != "default.json" {
-                    if let config = try? Config.load(from: fileURL.path) {
-                        if config.targetBundleIdentifier.lowercased() == bundleID.lowercased() {
-                            targetConfigName = fileURL.lastPathComponent
-                            break
-                        }
-                    }
-                }
-            }
-            finalConfigName = targetConfigName ?? "default.json"
+            // Intercept active app and dynamically match it with configs using the in-memory registry map
+            finalConfigName = self.profileBundleIDMap[bundleID.lowercased()] ?? "default.json"
         }
         
         if finalConfigName != self.currentRunningConfigName {
-            print("[App] Switching active configuration from \(self.currentRunningConfigName ?? "nil") to \(finalConfigName) (Trigger app: \(bundleID))")
-            self.currentRunningConfigName = finalConfigName
+            // Debounce profile switching by 0.1s to prevent UI locks on rapid window toggles
+            self.pendingAppSwitchWorkItem?.cancel()
             
-            let configsDir = ConfigurationWindowController.getConfigsDirectoryURL()
-            let configURL = configsDir.appendingPathComponent(finalConfigName)
-            if let config = try? Config.load(from: configURL.path) {
-                self.applyConfig(config: config, name: finalConfigName, globalOverride: isOverrideRunning)
+            let workItem = DispatchWorkItem { [weak self, finalConfigName, bundleID, isOverrideRunning] in
+                guard let self = self else { return }
+                
+                Logger.app.info("Switching active configuration from \(self.currentRunningConfigName ?? "nil", privacy: .public) to \(finalConfigName, privacy: .public) (Trigger app: \(bundleID, privacy: .public))")
+                self.currentRunningConfigName = finalConfigName
+                
+                let configsDir = ConfigurationWindowController.getConfigsDirectoryURL()
+                let configURL = configsDir.appendingPathComponent(finalConfigName)
+                if let config = try? Config.load(from: configURL.path) {
+                    self.applyConfig(config: config, name: finalConfigName, globalOverride: isOverrideRunning)
+                }
+                
+                // Notify the web UI to auto-switch the profile dropdown
+                let cleanName = finalConfigName.escapingJS()
+                let jsCode = "if (window.handleProfileAutoSwitch) { window.handleProfileAutoSwitch('\(cleanName)'); }"
+                ConfigurationWindowController.shared.evaluateJavaScript(jsCode)
             }
             
-            // Notify the web UI to auto-switch the profile dropdown
-            let cleanName = finalConfigName.escapingJS()
-            let jsCode = "if (window.handleProfileAutoSwitch) { window.handleProfileAutoSwitch('\(cleanName)'); }"
-            ConfigurationWindowController.shared.evaluateJavaScript(jsCode)
+            self.pendingAppSwitchWorkItem = workItem
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1, execute: workItem)
         }
     }
     
     private func startDaemon() {
         reloadCurrentConfig()
         _ = LightroomSocketManager.shared
-        print("[Daemon] Daemon is listening and status bar app is running.")
+        Logger.app.info("Daemon is listening and status bar app is running.")
     }
     
     public func getMIDIListener() -> MIDIListener? {
@@ -486,9 +506,9 @@ struct LoupedeckPlusDaemon {
     static func main() {
         setbuf(stdout, nil)
         
-        print("==================================================")
-        print("        Loupedeck Interceptor App Wrapper         ")
-        print("==================================================")
+        Logger.app.info("==================================================")
+        Logger.app.info("        Loupedeck Interceptor App Wrapper         ")
+        Logger.app.info("==================================================")
         
         let app = NSApplication.shared
         let delegate = AppDelegate()

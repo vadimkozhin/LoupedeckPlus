@@ -1,6 +1,7 @@
 import Foundation
 import CoreMIDI
 import os.lock
+import os
 
 public final class MIDIListener: @unchecked Sendable {
     private var client = MIDIClientRef()
@@ -18,6 +19,11 @@ public final class MIDIListener: @unchecked Sendable {
     var isFnPressed = false
     var fnPressAction: KeyAction?
     var fnReleaseAction: KeyAction?
+    
+    private var normalCache = [UInt16: [MatchedMapping]]()
+    private var normalFnCache = [UInt16: [MatchedMapping]]()
+    private var customCache = [UInt16: [MatchedMapping]]()
+    private var customFnCache = [UInt16: [MatchedMapping]]()
     
     private var _globalOverride = false
     public var globalOverride: Bool {
@@ -103,6 +109,7 @@ public final class MIDIListener: @unchecked Sendable {
         self.fnReleaseAction = foundRelease
         
         setupMIDI()
+        compileLookupCaches(with: config)
     }
     
     private func setupMIDI() {
@@ -117,7 +124,7 @@ public final class MIDIListener: @unchecked Sendable {
         }
         
         guard status == noErr else {
-            print("[MIDIListener] Error creating MIDI client: \(status)")
+            Logger.midi.error("Error creating MIDI client: \(status)")
             return
         }
         
@@ -133,14 +140,14 @@ public final class MIDIListener: @unchecked Sendable {
         }
         
         guard status == noErr else {
-            print("[MIDIListener] Error creating MIDI input port: \(status)")
+            Logger.midi.error("Error creating MIDI input port: \(status)")
             return
         }
         
         // Create the MIDI Output Port.
         status = MIDIOutputPortCreate(client, "LoupedeckMIDIOutputPort" as CFString, &outputPort)
         guard status == noErr else {
-            print("[MIDIListener] Error creating MIDI output port: \(status)")
+            Logger.midi.error("Error creating MIDI output port: \(status)")
             return
         }
         
@@ -154,7 +161,7 @@ public final class MIDIListener: @unchecked Sendable {
     /// Scans all system MIDI sources and connects them to our input port.
     private func connectAllSources() {
         let sourceCount = MIDIGetNumberOfSources()
-        print("[MIDIListener] Found \(sourceCount) MIDI source(s)")
+        Logger.midi.info("Found \(sourceCount) MIDI source(s)")
         
         os_unfair_lock_lock(&lock)
         sourceNames.removeAll()
@@ -183,9 +190,9 @@ public final class MIDIListener: @unchecked Sendable {
                 UnsafeMutableRawPointer(bitPattern: Int(source))
             )
             if connectStatus == noErr {
-                print("[MIDIListener] Successfully connected to source: \(sourceName) (ID: \(source))")
+                Logger.midi.info("Successfully connected to source: \(sourceName, privacy: .public) (ID: \(source))")
             } else {
-                print("[MIDIListener] Failed to connect to source \(sourceName) at index \(i), status: \(connectStatus)")
+                Logger.midi.error("Failed to connect to source \(sourceName, privacy: .public) at index \(i), status: \(connectStatus)")
             }
         }
         
@@ -205,7 +212,7 @@ public final class MIDIListener: @unchecked Sendable {
         
         if changed {
             let serialCopy = isConnected ? serial : nil
-            print("[MIDIListener] Connection state changed: isConnected=\(isConnected), serial=\(serialCopy ?? "nil")")
+            Logger.midi.info("Connection state changed: isConnected=\(isConnected), serial=\(serialCopy ?? "nil", privacy: .public)")
             DispatchQueue.main.async {
                 ConfigurationWindowController.shared.updateDeviceStatus(isConnected: isConnected, serialNumber: serialCopy)
             }
@@ -217,7 +224,7 @@ public final class MIDIListener: @unchecked Sendable {
         let source = MIDIEndpointRef(Int(bitPattern: srcConnRefCon))
         // Retrieve the offset of the first packet in the packet list.
         guard let packetOffset = MemoryLayout<MIDIPacketList>.offset(of: \MIDIPacketList.packet) else {
-            print("[MIDIListener] Internal error: Could not determine packet offset")
+            Logger.midi.error("Internal error: Could not determine packet offset")
             return
         }
         
@@ -295,6 +302,82 @@ public final class MIDIListener: @unchecked Sendable {
         let defaultValue: Double?
     }
     
+    private func compileLookupCaches(with newConfig: Config) {
+        var normal = [UInt16: [MatchedMapping]]()
+        var normalFn = [UInt16: [MatchedMapping]]()
+        var custom = [UInt16: [MatchedMapping]]()
+        var customFn = [UInt16: [MatchedMapping]]()
+        
+        func addToCache(_ action: KeyAction?, comment: String, defaultValue: Double?, cache: inout [UInt16: [MatchedMapping]]) {
+            guard let action = action, let matchers = action.parsedMatchers, matchers.count >= 2 else { return }
+            
+            let statusByte: UInt8
+            switch matchers[0] {
+            case .exact(let val): statusByte = val
+            default: return
+            }
+            
+            let data1Byte: UInt8
+            switch matchers[1] {
+            case .exact(let val): data1Byte = val
+            default: return
+            }
+            
+            let key = (UInt16(statusByte) << 8) | UInt16(data1Byte)
+            let mapping = MatchedMapping(action: action, comment: comment, defaultValue: defaultValue)
+            cache[key, default: []].append(mapping)
+        }
+        
+        if let knobs = newConfig.knobs {
+            for knob in knobs {
+                let defaultComment = knob.comment ?? "Knob"
+                addToCache(knob.plus, comment: "\(defaultComment) Plus", defaultValue: knob.defaultValue, cache: &normal)
+                addToCache(knob.minus, comment: "\(defaultComment) Minus", defaultValue: knob.defaultValue, cache: &normal)
+                addToCache(knob.press, comment: "\(defaultComment) Press", defaultValue: knob.defaultValue, cache: &normal)
+                addToCache(knob.release, comment: "\(defaultComment) Release", defaultValue: knob.defaultValue, cache: &normal)
+                
+                addToCache(knob.fnPlus, comment: "\(defaultComment) Fn Plus", defaultValue: knob.defaultValue, cache: &normalFn)
+                addToCache(knob.fnMinus, comment: "\(defaultComment) Fn Minus", defaultValue: knob.defaultValue, cache: &normalFn)
+                addToCache(knob.fnPress, comment: "\(defaultComment) Fn Press", defaultValue: knob.defaultValue, cache: &normalFn)
+                addToCache(knob.fnRelease, comment: "\(defaultComment) Fn Release", defaultValue: knob.defaultValue, cache: &normalFn)
+                
+                addToCache(knob.cmPlus, comment: "\(defaultComment) CM Plus", defaultValue: knob.defaultValue, cache: &custom)
+                addToCache(knob.cmMinus, comment: "\(defaultComment) CM Minus", defaultValue: knob.defaultValue, cache: &custom)
+                addToCache(knob.cmPress, comment: "\(defaultComment) CM Press", defaultValue: knob.defaultValue, cache: &custom)
+                addToCache(knob.cmRelease, comment: "\(defaultComment) CM Release", defaultValue: knob.defaultValue, cache: &custom)
+                
+                addToCache(knob.cmFnPlus, comment: "\(defaultComment) CM Fn Plus", defaultValue: knob.defaultValue, cache: &customFn)
+                addToCache(knob.cmFnMinus, comment: "\(defaultComment) CM Fn Minus", defaultValue: knob.defaultValue, cache: &customFn)
+                addToCache(knob.cmFnPress, comment: "\(defaultComment) CM Fn Press", defaultValue: knob.defaultValue, cache: &customFn)
+                addToCache(knob.cmFnRelease, comment: "\(defaultComment) CM Fn Release", defaultValue: knob.defaultValue, cache: &customFn)
+            }
+        }
+        
+        if let buttons = newConfig.buttons {
+            for button in buttons {
+                let defaultComment = button.comment ?? "Button"
+                addToCache(button.press, comment: "\(defaultComment) Press", defaultValue: nil, cache: &normal)
+                addToCache(button.release, comment: "\(defaultComment) Release", defaultValue: nil, cache: &normal)
+                
+                addToCache(button.fnPress, comment: "\(defaultComment) Fn Press", defaultValue: nil, cache: &normalFn)
+                addToCache(button.fnRelease, comment: "\(defaultComment) Fn Release", defaultValue: nil, cache: &normalFn)
+                
+                addToCache(button.cmPress, comment: "\(defaultComment) CM Press", defaultValue: nil, cache: &custom)
+                addToCache(button.cmRelease, comment: "\(defaultComment) CM Release", defaultValue: nil, cache: &custom)
+                
+                addToCache(button.cmFnPress, comment: "\(defaultComment) CM Fn Press", defaultValue: nil, cache: &customFn)
+                addToCache(button.cmFnRelease, comment: "\(defaultComment) CM Fn Release", defaultValue: nil, cache: &customFn)
+            }
+        }
+        
+        os_unfair_lock_lock(&lock)
+        self.normalCache = normal
+        self.normalFnCache = normalFn
+        self.customCache = custom
+        self.customFnCache = customFn
+        os_unfair_lock_unlock(&lock)
+    }
+
     /// Finds a matching configuration mapping for the incoming MIDI event.
     func findMatchingAction(status: UInt8, data1: UInt8, data2: UInt8) -> MatchedMapping? {
         os_unfair_lock_lock(&lock)
@@ -318,129 +401,18 @@ public final class MIDIListener: @unchecked Sendable {
             }
         }
         
+        let key = (UInt16(status) << 8) | UInt16(data1)
+        let candidates: [MatchedMapping]
+        
         if isCustomModeActive {
-            if isFnPressed {
-                // 3. Custom Mode + Fn active: Check Knobs
-                if let knobs = config.knobs {
-                    for knob in knobs {
-                        if let action = knob.cmFnPlus, action.matches(status: status, data1: data1, data2: data2) {
-                            return MatchedMapping(action: action, comment: knob.comment ?? "Custom Mode Fn Knob Plus", defaultValue: knob.defaultValue)
-                        }
-                        if let action = knob.cmFnMinus, action.matches(status: status, data1: data1, data2: data2) {
-                            return MatchedMapping(action: action, comment: knob.comment ?? "Custom Mode Fn Knob Minus", defaultValue: knob.defaultValue)
-                        }
-                        if let action = knob.cmFnPress, action.matches(status: status, data1: data1, data2: data2) {
-                            return MatchedMapping(action: action, comment: knob.comment ?? "Custom Mode Fn Knob Press", defaultValue: knob.defaultValue)
-                        }
-                        if let action = knob.cmFnRelease, action.matches(status: status, data1: data1, data2: data2) {
-                            return MatchedMapping(action: action, comment: knob.comment ?? "Custom Mode Fn Knob Release", defaultValue: knob.defaultValue)
-                        }
-                    }
-                }
-                
-                // 4. Custom Mode + Fn active: Check Buttons
-                if let buttons = config.buttons {
-                    for button in buttons {
-                        if let action = button.cmFnPress, action.matches(status: status, data1: data1, data2: data2) {
-                            return MatchedMapping(action: action, comment: button.comment ?? "Custom Mode Fn Button Press", defaultValue: nil)
-                        }
-                        if let action = button.cmFnRelease, action.matches(status: status, data1: data1, data2: data2) {
-                            return MatchedMapping(action: action, comment: button.comment ?? "Custom Mode Fn Button Release", defaultValue: nil)
-                        }
-                    }
-                }
-            } else {
-                // 5. Custom Mode: Check Knobs
-                if let knobs = config.knobs {
-                    for knob in knobs {
-                        if let action = knob.cmPlus, action.matches(status: status, data1: data1, data2: data2) {
-                            return MatchedMapping(action: action, comment: knob.comment ?? "Custom Mode Knob Plus", defaultValue: knob.defaultValue)
-                        }
-                        if let action = knob.cmMinus, action.matches(status: status, data1: data1, data2: data2) {
-                            return MatchedMapping(action: action, comment: knob.comment ?? "Custom Mode Knob Minus", defaultValue: knob.defaultValue)
-                        }
-                        if let action = knob.cmPress, action.matches(status: status, data1: data1, data2: data2) {
-                            return MatchedMapping(action: action, comment: knob.comment ?? "Custom Mode Knob Press", defaultValue: knob.defaultValue)
-                        }
-                        if let action = knob.cmRelease, action.matches(status: status, data1: data1, data2: data2) {
-                            return MatchedMapping(action: action, comment: knob.comment ?? "Custom Mode Knob Release", defaultValue: knob.defaultValue)
-                        }
-                    }
-                }
-                
-                // 6. Custom Mode: Check Buttons
-                if let buttons = config.buttons {
-                    for button in buttons {
-                        if let action = button.cmPress, action.matches(status: status, data1: data1, data2: data2) {
-                            return MatchedMapping(action: action, comment: button.comment ?? "Custom Mode Button Press", defaultValue: nil)
-                        }
-                        if let action = button.cmRelease, action.matches(status: status, data1: data1, data2: data2) {
-                            return MatchedMapping(action: action, comment: button.comment ?? "Custom Mode Button Release", defaultValue: nil)
-                        }
-                    }
-                }
-            }
+            candidates = isFnPressed ? (customFnCache[key] ?? []) : (customCache[key] ?? [])
         } else {
-            if isFnPressed {
-                // 7. Normal Mode + Fn active: Check Knobs
-                if let knobs = config.knobs {
-                    for knob in knobs {
-                        if let action = knob.fnPlus, action.matches(status: status, data1: data1, data2: data2) {
-                            return MatchedMapping(action: action, comment: knob.comment ?? "Normal Mode Fn Knob Plus", defaultValue: knob.defaultValue)
-                        }
-                        if let action = knob.fnMinus, action.matches(status: status, data1: data1, data2: data2) {
-                            return MatchedMapping(action: action, comment: knob.comment ?? "Normal Mode Fn Knob Minus", defaultValue: knob.defaultValue)
-                        }
-                        if let action = knob.fnPress, action.matches(status: status, data1: data1, data2: data2) {
-                            return MatchedMapping(action: action, comment: knob.comment ?? "Normal Mode Fn Knob Press", defaultValue: knob.defaultValue)
-                        }
-                        if let action = knob.fnRelease, action.matches(status: status, data1: data1, data2: data2) {
-                            return MatchedMapping(action: action, comment: knob.comment ?? "Normal Mode Fn Knob Release", defaultValue: knob.defaultValue)
-                        }
-                    }
-                }
-                
-                // 8. Normal Mode + Fn active: Check Buttons
-                if let buttons = config.buttons {
-                    for button in buttons {
-                        if let action = button.fnPress, action.matches(status: status, data1: data1, data2: data2) {
-                            return MatchedMapping(action: action, comment: button.comment ?? "Normal Mode Fn Button Press", defaultValue: nil)
-                        }
-                        if let action = button.fnRelease, action.matches(status: status, data1: data1, data2: data2) {
-                            return MatchedMapping(action: action, comment: button.comment ?? "Normal Mode Fn Button Release", defaultValue: nil)
-                        }
-                    }
-                }
-            } else {
-                // 9. Normal Mode: Check Knobs
-                if let knobs = config.knobs {
-                    for knob in knobs {
-                        if let action = knob.plus, action.matches(status: status, data1: data1, data2: data2) {
-                            return MatchedMapping(action: action, comment: knob.comment ?? "Knob Plus", defaultValue: knob.defaultValue)
-                        }
-                        if let action = knob.minus, action.matches(status: status, data1: data1, data2: data2) {
-                            return MatchedMapping(action: action, comment: knob.comment ?? "Knob Minus", defaultValue: knob.defaultValue)
-                        }
-                        if let action = knob.press, action.matches(status: status, data1: data1, data2: data2) {
-                            return MatchedMapping(action: action, comment: knob.comment ?? "Knob Press", defaultValue: knob.defaultValue)
-                        }
-                        if let action = knob.release, action.matches(status: status, data1: data1, data2: data2) {
-                            return MatchedMapping(action: action, comment: knob.comment ?? "Knob Release", defaultValue: knob.defaultValue)
-                        }
-                    }
-                }
-                
-                // 10. Normal Mode: Check Buttons
-                if let buttons = config.buttons {
-                    for button in buttons {
-                        if let action = button.press, action.matches(status: status, data1: data1, data2: data2) {
-                            return MatchedMapping(action: action, comment: button.comment ?? "Button Press", defaultValue: nil)
-                        }
-                        if let action = button.release, action.matches(status: status, data1: data1, data2: data2) {
-                            return MatchedMapping(action: action, comment: button.comment ?? "Button Release", defaultValue: nil)
-                        }
-                    }
-                }
+            candidates = isFnPressed ? (normalFnCache[key] ?? []) : (normalCache[key] ?? [])
+        }
+        
+        for candidate in candidates {
+            if candidate.action.matches(status: status, data1: data1, data2: data2) {
+                return candidate
             }
         }
         
@@ -461,13 +433,13 @@ public final class MIDIListener: @unchecked Sendable {
             os_unfair_lock_lock(&lock)
             if data1 == 0x62 {
                 activeColorMode = "HUE"
-                print("[MIDIListener] Mode Button pressed: HUE")
+                Logger.midi.info("Mode Button pressed: HUE")
             } else if data1 == 0x63 {
                 activeColorMode = "SAT"
-                print("[MIDIListener] Mode Button pressed: SAT")
+                Logger.midi.info("Mode Button pressed: SAT")
             } else if data1 == 0x64 {
                 activeColorMode = "LUM"
-                print("[MIDIListener] Mode Button pressed: LUM")
+                Logger.midi.info("Mode Button pressed: LUM")
             }
             os_unfair_lock_unlock(&lock)
         }
@@ -510,7 +482,7 @@ public final class MIDIListener: @unchecked Sendable {
                 } else {
                     modeStr = fn ? "Normal Mode (Fn active)" : "Normal Mode"
                 }
-                print("[MIDIListener] Info: No action mapped for MIDI control in \(modeStr) (\(String(format: "%02X %02X %02X", status, data1, data2)))")
+                Logger.midi.info("No action mapped for MIDI control in \(modeStr, privacy: .public) (\(String(format: "%02X %02X %02X", status, data1, data2), privacy: .public))")
             }
             return
         }
@@ -546,7 +518,7 @@ public final class MIDIListener: @unchecked Sendable {
         os_unfair_lock_unlock(&lock)
         
         if isDuplicate {
-            print("[MIDIListener] Suppressed duplicate event (\(String(format: "%02X %02X %02X", status, data1, data2))) from source: \(sourceName)")
+            Logger.midi.debug("Suppressed duplicate event (\(String(format: "%02X %02X %02X", status, data1, data2), privacy: .public)) from source: \(sourceName, privacy: .public)")
             return
         }
 
@@ -561,7 +533,7 @@ public final class MIDIListener: @unchecked Sendable {
                 isCustomModeActive = !isCustomModeActive
                 let active = isCustomModeActive
                 os_unfair_lock_unlock(&lock)
-                print("[MIDIListener] Custom Mode toggled to: \(active ? "ENABLED" : "DISABLED")")
+                Logger.midi.info("Custom Mode toggled to: \(active ? "ENABLED" : "DISABLED")")
                 
                 // Mimic captured MIDI feedback: B1 01 7F when ON, B1 01 00 when OFF
                 let feedbackVal: UInt8 = active ? 0x7F : 0x00
@@ -575,12 +547,12 @@ public final class MIDIListener: @unchecked Sendable {
                 os_unfair_lock_lock(&lock)
                 isFnPressed = true
                 os_unfair_lock_unlock(&lock)
-                print("[MIDIListener] Fn modifier ACTIVE")
+                Logger.midi.info("Fn modifier ACTIVE")
             } else if actionName == "fn_release" {
                 os_unfair_lock_lock(&lock)
                 isFnPressed = false
                 os_unfair_lock_unlock(&lock)
-                print("[MIDIListener] Fn modifier INACTIVE")
+                Logger.midi.info("Fn modifier INACTIVE")
             }
         }
         
@@ -611,7 +583,7 @@ public final class MIDIListener: @unchecked Sendable {
             } else {
                 typeStr = "Event"
             }
-            print("[MIDIListener] Action Triggered (\(typeStr)): \(comment) (MIDI: \(valHex))")
+            Logger.midi.info("Action Triggered (\(typeStr, privacy: .public)): \(comment, privacy: .public) (MIDI: \(valHex, privacy: .public))")
         }
         
         if let actionName = action.action,
@@ -656,7 +628,7 @@ public final class MIDIListener: @unchecked Sendable {
                 end tell
                 """
                 
-                print("[MIDIListener] Dynamically resetting \(colorName) (\(c1Color)) \(currentMode) (\(c1Property)) to 0.0")
+                Logger.midi.info("Dynamically resetting \(colorName, privacy: .public) (\(c1Color, privacy: .public)) \(currentMode, privacy: .public) (\(c1Property, privacy: .public)) to 0.0")
                 scriptQueue.async {
                     manager.executeCustomScript(source: scriptSource, actionName: actionName, activeAppPath: appPath)
                 }
@@ -699,17 +671,17 @@ public final class MIDIListener: @unchecked Sendable {
                 os_unfair_lock_lock(&lock)
                 activeColorMode = "HUE"
                 os_unfair_lock_unlock(&lock)
-                print("[Loupedeck] Active Mode: HUE (Standard Mode)")
+                Logger.midi.info("Active Mode: HUE (Standard Mode)")
             } else if suffix == "0001" {
                 os_unfair_lock_lock(&lock)
                 activeColorMode = "SAT"
                 os_unfair_lock_unlock(&lock)
-                print("[Loupedeck] Active Mode: SAT (Saturation Mode)")
+                Logger.midi.info("Active Mode: SAT (Saturation Mode)")
             } else if suffix == "0002" {
                 os_unfair_lock_lock(&lock)
                 activeColorMode = "LUM"
                 os_unfair_lock_unlock(&lock)
-                print("[Loupedeck] Active Mode: LUM (Luminance Mode)")
+                Logger.midi.info("Active Mode: LUM (Luminance Mode)")
             } else if let buildVal = Int(suffix, radix: 16) {
                 let version: String
                 if buildVal == 80 {
@@ -717,13 +689,13 @@ public final class MIDIListener: @unchecked Sendable {
                 } else {
                     version = String(format: "%.1f", Double(buildVal) / 10.0)
                 }
-                print("[Loupedeck] Hardware Detected: Loupedeck+ (Firmware Version: \(version), Build: \(buildVal))")
+                Logger.midi.info("Hardware Detected: Loupedeck+ (Firmware Version: \(version, privacy: .public), Build: \(buildVal))")
             }
         } else if asciiString.hasPrefix("135000") {
             // Handshake response containing the serial number:
             // e.g. "135000190300162E01010B0029000000000000"
             if let decodedSerial = decodeLoupedeckSerial(asciiString) {
-                print("[Loupedeck] Serial Number: \(decodedSerial)")
+                Logger.midi.info("Serial Number: \(decodedSerial, privacy: .public)")
                 updateConnectionState(isConnected: true, serial: decodedSerial)
             }
         }
@@ -783,7 +755,7 @@ public final class MIDIListener: @unchecked Sendable {
             if let cfName = name?.takeRetainedValue() {
                 let destName = cfName as String
                 if destName.contains("Loupedeck") {
-                    print("[MIDIListener] Found Loupedeck destination: \(destName) (ID: \(dest)). Sending initialization sequence...")
+                    Logger.midi.info("Found Loupedeck destination: \(destName, privacy: .public) (ID: \(dest)). Sending initialization sequence...")
                     LoupedeckDeviceInitializer.run(destination: dest, sendRawBytes: { [weak self] bytes, endpoint in
                         self?.sendRawBytes(bytes, to: endpoint)
                     })
@@ -819,7 +791,7 @@ public final class MIDIListener: @unchecked Sendable {
             
             let workItem = DispatchWorkItem { [weak self] in
                 guard let self = self else { return }
-                print("[MIDIListener] MIDI setup change stabilized. Re-scanning sources & re-initializing...")
+                Logger.midi.info("MIDI setup change stabilized. Re-scanning sources & re-initializing...")
                 self.connectAllSources()
                 self.initializeLoupedeckDevices()
             }
@@ -834,24 +806,25 @@ public final class MIDIListener: @unchecked Sendable {
     private func sendRawBytes(_ bytes: [UInt8], to destination: MIDIEndpointRef) {
         let packetSize = bytes.count
         let bufferSize = MemoryLayout<MIDIPacketList>.size + packetSize + 100
-        let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: bufferSize)
-        defer { buffer.deallocate() }
         
-        let packetList = buffer.withMemoryRebound(to: MIDIPacketList.self, capacity: 1) { $0 }
-        var packetPtr = MIDIPacketListInit(packetList)
-        
-        packetPtr = MIDIPacketListAdd(
-            packetList,
-            bufferSize,
-            packetPtr,
-            0,
-            packetSize,
-            bytes
-        )
-        
-        let status = MIDISend(outputPort, destination, packetList)
-        if status != noErr {
-            print("[MIDIListener] Error sending raw bytes to destination: \(status)")
+        withUnsafeTemporaryAllocation(of: UInt8.self, capacity: bufferSize) { buffer in
+            guard let baseAddress = buffer.baseAddress else { return }
+            let packetList = baseAddress.withMemoryRebound(to: MIDIPacketList.self, capacity: 1) { $0 }
+            var packetPtr = MIDIPacketListInit(packetList)
+            
+            packetPtr = MIDIPacketListAdd(
+                packetList,
+                bufferSize,
+                packetPtr,
+                0,
+                packetSize,
+                bytes
+            )
+            
+            let status = MIDISend(outputPort, destination, packetList)
+            if status != noErr {
+                Logger.midi.error("Error sending raw bytes to destination: \(status)")
+            }
         }
     }
     
@@ -902,7 +875,8 @@ public final class MIDIListener: @unchecked Sendable {
         self.isFnPressed = false
         os_unfair_lock_unlock(&lock)
         
-        print("[MIDIListener] Dynamically updated configuration (Global override: \(globalOverride))")
+        compileLookupCaches(with: newConfig)
+        Logger.midi.info("Dynamically updated configuration (Global override: \(globalOverride))")
     }
     
     deinit {

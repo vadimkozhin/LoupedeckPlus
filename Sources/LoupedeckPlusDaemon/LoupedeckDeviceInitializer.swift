@@ -1,5 +1,6 @@
 import Foundation
 import CoreMIDI
+import os
 
 public struct LoupedeckDeviceInitializer {
     /// Executes the captured Loupedeck+ initialization sequence.
@@ -10,7 +11,7 @@ public struct LoupedeckDeviceInitializer {
         destination: MIDIEndpointRef,
         sendRawBytes: @escaping ([UInt8], MIDIEndpointRef) -> Void
     ) {
-        print("[LoupedeckDeviceInitializer] Starting Loupedeck+ initialization sequence...")
+        Logger.midi.info("Starting Loupedeck+ initialization sequence...")
         
         let sequence: [[UInt8]] = [
             // 1. SysEx: Device type / Info query
@@ -62,6 +63,6 @@ public struct LoupedeckDeviceInitializer {
             usleep(2000)
         }
         
-        print("[LoupedeckDeviceInitializer] Loupedeck+ initialization sequence sent successfully.")
+        Logger.midi.info("Loupedeck+ initialization sequence sent successfully.")
     }
 }

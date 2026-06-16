@@ -4,7 +4,7 @@ use scripting additions
 -- Increase Exposure by 1 stop
 set exposureVar to -1.0
 
-tell application "Capture One 21"
+tell application "Capture One"
 	
 	repeat with variantItem in (get selected variants)
 		-- Get current exposure

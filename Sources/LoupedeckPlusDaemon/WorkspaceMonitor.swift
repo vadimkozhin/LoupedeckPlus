@@ -1,5 +1,6 @@
 import AppKit
 import os.lock
+import os
 
 public final class WorkspaceMonitor: @unchecked Sendable {
     private var lock = os_unfair_lock()
@@ -18,7 +19,7 @@ public final class WorkspaceMonitor: @unchecked Sendable {
             if active {
                 self._activeAppPath = frontmostApp.bundleURL?.path
             }
-            print("[WorkspaceMonitor] Initial frontmost application: \(frontmostApp.bundleIdentifier ?? "none") (Target active: \(self._isTargetActive), Path: \(self._activeAppPath ?? "none"))")
+            Logger.app.info("Initial frontmost application: \(frontmostApp.bundleIdentifier ?? "none", privacy: .public) (Target active: \(self._isTargetActive), Path: \(self._activeAppPath ?? "none", privacy: .public))")
         }
         
         // Listen to application activation notifications on the main thread
@@ -36,7 +37,7 @@ public final class WorkspaceMonitor: @unchecked Sendable {
                 self._activeAppPath = appPath
                 os_unfair_lock_unlock(&self.lock)
                 
-                print("[WorkspaceMonitor] Active application changed to: \(app.bundleIdentifier ?? "unknown") (Target active: \(isActive), Path: \(appPath ?? "none"))")
+                Logger.app.info("Active application changed to: \(app.bundleIdentifier ?? "unknown", privacy: .public) (Target active: \(isActive), Path: \(appPath ?? "none", privacy: .public))")
             }
         }
     }
@@ -71,7 +72,7 @@ public final class WorkspaceMonitor: @unchecked Sendable {
             } else {
                 self._activeAppPath = nil
             }
-            print("[WorkspaceMonitor] Target bundle ID updated to \(newBundleID). Current frontmost application: \(frontmostApp.bundleIdentifier ?? "none") (Target active: \(active), Path: \(self._activeAppPath ?? "none"))")
+            Logger.app.info("Target bundle ID updated to \(newBundleID, privacy: .public). Current frontmost application: \(frontmostApp.bundleIdentifier ?? "none", privacy: .public) (Target active: \(active), Path: \(self._activeAppPath ?? "none", privacy: .public))")
         } else {
             self._isTargetActive = false
             self._activeAppPath = nil

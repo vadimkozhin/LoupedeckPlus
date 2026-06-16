@@ -1,6 +1,7 @@
 import Foundation
 import CoreGraphics
 import ApplicationServices
+import os
 
 public final class EventSynthesizer: @unchecked Sendable {
     private let eventSource = CGEventSource(stateID: .combinedSessionState)
@@ -76,7 +77,7 @@ public final class EventSynthesizer: @unchecked Sendable {
     public func simulateKeystroke(keyCode: UInt16, modifiers: [ModifierKey]?) {
         eventQueue.async { [weak self] in
             guard let self = self, let eventSource = self.eventSource else {
-                print("[EventSynthesizer] Error: Failed to create event source")
+                Logger.midi.error("Error: Failed to create event source")
                 return
             }
             
@@ -120,7 +121,7 @@ public final class EventSynthesizer: @unchecked Sendable {
             // Create target key down and up events
             guard let keyDownEvent = CGEvent(keyboardEventSource: eventSource, virtualKey: CGKeyCode(keyCode), keyDown: true),
                   let keyUpEvent = CGEvent(keyboardEventSource: eventSource, virtualKey: CGKeyCode(keyCode), keyDown: false) else {
-                print("[EventSynthesizer] Error: Failed to create keyboard events for keycode \(keyCode)")
+                Logger.midi.error("Error: Failed to create keyboard events for keycode \(keyCode)")
                 return
             }
             
@@ -165,7 +166,7 @@ public final class EventSynthesizer: @unchecked Sendable {
                 self.eventQueue.asyncAfter(deadline: .now() + 0.1, execute: workItem)
             }
             
-            print("[EventSynthesizer] Simulated Keystroke: KeyCode \(keyCode), Modifiers: \(modifiers?.map { $0.rawValue }.joined(separator: "+") ?? "None")")
+            Logger.midi.info("Simulated Keystroke: KeyCode \(keyCode), Modifiers: \(modifiers?.map { $0.rawValue }.joined(separator: "+") ?? "None")")
         }
     }
     
@@ -173,7 +174,7 @@ public final class EventSynthesizer: @unchecked Sendable {
     public func simulateSpeedEditScroll(keyCode: UInt16, midiNumber: Int, midiValue: Int, relativeMode: RelativeMode) {
         eventQueue.async { [weak self] in
             guard let self = self, let eventSource = self.eventSource else {
-                print("[EventSynthesizer] Error: Failed to create event source")
+                Logger.midi.error("Error: Failed to create event source")
                 return
             }
             
@@ -184,7 +185,7 @@ public final class EventSynthesizer: @unchecked Sendable {
             guard let keyDownEvent = CGEvent(keyboardEventSource: eventSource, virtualKey: CGKeyCode(keyCode), keyDown: true),
                   let scrollEvent = CGEvent(scrollWheelEvent2Source: eventSource, units: .line, wheelCount: 1, wheel1: delta, wheel2: 0, wheel3: 0),
                   let keyUpEvent = CGEvent(keyboardEventSource: eventSource, virtualKey: CGKeyCode(keyCode), keyDown: false) else {
-                print("[EventSynthesizer] Error: Failed to create events for Speed Edit Scroll (keycode \(keyCode))")
+                Logger.midi.error("Error: Failed to create events for Speed Edit Scroll (keycode \(keyCode))")
                 return
             }
             
@@ -195,7 +196,7 @@ public final class EventSynthesizer: @unchecked Sendable {
             usleep(5000) // 5ms delay
             keyUpEvent.post(tap: .cghidEventTap)
             
-            print("[EventSynthesizer] Simulated Speed Edit Scroll: KeyCode \(keyCode) with scroll delta \(delta) (MIDI value: \(midiValue))")
+            Logger.midi.info("Simulated Speed Edit Scroll: KeyCode \(keyCode) with scroll delta \(delta) (MIDI value: \(midiValue))")
         }
     }
     
