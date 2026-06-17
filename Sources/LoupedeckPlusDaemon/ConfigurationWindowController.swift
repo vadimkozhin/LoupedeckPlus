@@ -8,6 +8,8 @@ public final class ConfigurationWindowController: NSObject, NSWindowDelegate, WK
     
     private var window: NSWindow?
     private var webView: WKWebView?
+    private var isPageLoaded = false
+    private var pendingTriggerAbout = false
     
     private override init() {
         super.init()
@@ -22,9 +24,23 @@ public final class ConfigurationWindowController: NSObject, NSWindowDelegate, WK
     }
     
     public func triggerAboutModal() {
-        let jsCode = "if (window.triggerAboutModal) { window.triggerAboutModal(); }"
-        DispatchQueue.main.async {
-            self.webView?.evaluateJavaScript(jsCode, completionHandler: nil)
+        if isPageLoaded {
+            let jsCode = "if (window.triggerAboutModal) { window.triggerAboutModal(); }"
+            DispatchQueue.main.async {
+                self.webView?.evaluateJavaScript(jsCode, completionHandler: nil)
+            }
+        } else {
+            pendingTriggerAbout = true
+        }
+    }
+    
+    public func closeAboutModal() {
+        pendingTriggerAbout = false
+        if isPageLoaded {
+            let jsCode = "if (window.closeAboutModal) { window.closeAboutModal(); }"
+            DispatchQueue.main.async {
+                self.webView?.evaluateJavaScript(jsCode, completionHandler: nil)
+            }
         }
     }
     
@@ -71,6 +87,8 @@ public final class ConfigurationWindowController: NSObject, NSWindowDelegate, WK
         win.contentView?.addSubview(web)
         self.window = win
         self.webView = web
+        self.isPageLoaded = false
+        self.pendingTriggerAbout = false
         
         loadUI()
     }
@@ -792,6 +810,14 @@ public final class ConfigurationWindowController: NSObject, NSWindowDelegate, WK
             }
         }
         decisionHandler(.allow)
+    }
+
+    public func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+        isPageLoaded = true
+        if pendingTriggerAbout {
+            pendingTriggerAbout = false
+            triggerAboutModal()
+        }
     }
 
     // MARK: - WKUIDelegate

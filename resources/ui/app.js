@@ -117,6 +117,11 @@ window.triggerAboutModal = function () {
   modal.classList.remove("hidden");
 };
 
+window.closeAboutModal = function () {
+  const modal = document.getElementById("about-modal");
+  modal.classList.add("hidden");
+};
+
 // 2. Initialize
 document.addEventListener("DOMContentLoaded", async () => {
   // Load SVG (wrapped in try/catch to not block other async initializations)
@@ -1223,11 +1228,13 @@ function saveControlSettings() {
 
   if (type === 'customModeButton') {
     const baseNote = getControlBaseMidiNote(selectedControl.data) || "75";
-    currentConfig.customModeButton = {
+    const updatedCustom = {
       comment: comment || undefined,
       press: getActionFromFields("normal-press") || { midiMatch: `90 ${baseNote} 40` },
       release: getActionFromFields("normal-release") || { midiMatch: `80 ${baseNote} 40` }
     };
+    currentConfig.customModeButton = updatedCustom;
+    selectedControl.data = updatedCustom;
   } else if (type === 'wheel') {
     // Save to the active wheel mode (Hue, Sat, or Lum)
     const wheelObj = selectedControl.data.find(k => k.comment && k.comment.includes(" - " + currentWheelMode));
@@ -1235,7 +1242,7 @@ function saveControlSettings() {
       const idx = currentConfig.knobs.indexOf(wheelObj);
       if (idx !== -1) {
         const baseNote = getControlBaseMidiNote(wheelObj) || "00";
-        currentConfig.knobs[idx] = {
+        const updatedWheel = {
           comment: wheelObj.comment,
           default: defaultValue !== null ? defaultValue : undefined,
           press: getActionFromFields("normal-press") || { midiMatch: `80 ${baseNote} 40` },
@@ -1255,6 +1262,11 @@ function saveControlSettings() {
           cm_fn_plus: getActionFromFields("cm-fn-plus") || undefined,
           cm_fn_minus: getActionFromFields("cm-fn-minus") || undefined
         };
+        currentConfig.knobs[idx] = updatedWheel;
+        const dIdx = selectedControl.data.indexOf(wheelObj);
+        if (dIdx !== -1) {
+          selectedControl.data[dIdx] = updatedWheel;
+        }
       }
     }
   } else if (type === 'knob') {

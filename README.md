@@ -7,7 +7,7 @@ A MacOs app to replace the official Loupedeck software.
 
 * GUI configuration editor
 * Live preview of control assignments
-* Allow to bind Loupedeck controls to keyboard shortcuts and AppleScripts (plain text only)
+* Allow to bind Loupedeck controls to keyboard shortcuts and AppleScripts (in plain text)
 * Support for custom profiles
 * Adobe Lightroom Classic plugin with socket client
 * Support for CaptureOne custom keyboard shortcuts (no plugin used) 
@@ -93,8 +93,15 @@ Run the build script and see available options:
 --clean                 Clean all build artifacts (can be combined with other options)
 -h, --help              Show this help message
 ```
+## Known issues
+- Apple scripts should be in plain text with *.applescript or *.txt extensions and UTF-8 encoding. Other variants may not work or cause the issues.
+- Apple scripts placed in root or subdirs in `~/.config/loupedeck-plus/scripts/` should be named uniquely to avoid name collision. The app itself not resolve name collisions and randomly load one of the script with the same name.
 
 ## Version History
+0.5.5
+- Fix the issue with Scrollers / Wheels do not remembers assigned values when window lost focus or when switch to another app (issue #4)
+- AppleScript loading error handling and verbose diagnostics 
+
 0.5.4
 - Ignore .scpt (compiled apple scripts) from loading
 - Remove "Capture One 21" from example custom scripts

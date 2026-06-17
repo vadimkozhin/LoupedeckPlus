@@ -232,6 +232,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     @objc private func openConfiguration() {
         ConfigurationWindowController.shared.show()
+        ConfigurationWindowController.shared.closeAboutModal()
     }
     
     @objc private func exitApp() {
